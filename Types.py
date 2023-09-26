@@ -431,6 +431,7 @@ class MaternClusterPointSampler_T(PointProcess_T):
     lambda_daughter: int = 100  # mean number of points in each cluster
     cluster_radius: float = 0.1  # radius of cluster disk (for daughter points) 
     warp: tuple = None
+    inherit_parents: bool = False
 
     def __post_init__(self):
         super().__post_init__()
@@ -445,6 +446,7 @@ class HardCoreMaternClusterPointSampler_T(PointProcess_T):
     core_radius: float = 0.02
     num_repeat: int = 0
     warp: tuple = None
+    inherit_parents: bool = False
 
     def __post_init__(self):
         super().__post_init__()
@@ -457,6 +459,7 @@ class ThomasClusterSampler_T(PointProcess_T):
     lambda_daughter: int = 100  # mean number of points in each cluster
     sigma: float = 0.05
     warp: tuple = None
+    inherit_parents: bool = False
 
     def __post_init__(self):
         super().__post_init__()
@@ -471,6 +474,7 @@ class HardCoreThomasClusterSampler_T(PointProcess_T):
     core_radius: float = 0.02
     num_repeat: int = 0
     warp: tuple = None
+    inherit_parents: bool = False
 
     def __post_init__(self):
         super().__post_init__()

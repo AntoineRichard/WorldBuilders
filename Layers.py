@@ -185,7 +185,7 @@ class BaseLayer:
             proj = np.matmul(self._T,points.T).T[:,:-1]
             return proj
 
-    def sample(self, num: int = 1):
+    def sample(self, num: int = 1, **kwargs):
         """
         Samples points from the layer.
         
@@ -224,14 +224,14 @@ class BaseLayer:
         else:
             return self.transform(points)
 
-    def __call__(self, num: int = 1) -> np.ndarray([]):
+    def __call__(self, num: int = 1, **kwargs) -> np.ndarray([]):
         """
         Samples points from the layer, projects them and transforms them.
         
         Args:
             num (int, optional): The number of points to sample. Defaults to 1."""
 
-        points = self.sample(num = num)
+        points = self.sample(num = num, **kwargs)
         points = self.project(points)
         points = self.transform(points)
         return points
@@ -273,14 +273,42 @@ class ImageLayer(Layer2D):
         super().__init__(layer_cfg, sampler_cfg)
         self.initializeSampler()
         self._sampler.setMask(layer_cfg.data, layer_cfg.mpp_resolution)
+        self._sampler._check_fn = self.checkBoundaries
 
+    #def getBounds(self) -> None:
+    #    """
+    #    Computes the bounds of the layer."""
+
+    #    self._bounds = None
     def getBounds(self) -> None:
         """
         Computes the bounds of the layer."""
+        W,H = self._layer_cfg.data.shape
+        self.xmin = 0
+        self.ymin = 0
+        self.xmax = W * self._layer_cfg.mpp_resolution
+        self.ymax = H * self._layer_cfg.mpp_resolution
+        self._bounds = np.array([[0, self.xmax],
+                                [0, self.ymax]])
+        
 
-        self._bounds = None
+    def checkBoundaries(self, points: np.ndarray([])) -> np.ndarray([]):
+        """
+        Checks if the points are within the boundaries of the layer.
+        
+        Args:
+            points (np.ndarray([])): The points to check.
+        
+        Returns:
+            np.ndarray([]): A boolean array indicating if the points are within the boundaries of the layer."""
+        
+        b1 = points[:,0] >= self.xmin
+        b2 = points[:,0] <= self.xmax
+        b3 = points[:,1] >= self.ymin
+        b4 = points[:,1] <= self.ymax
+        return b1*b2*b3*b4
 
-    def sample(self, num: int = 1) -> np.ndarray([]):
+    def sample(self, num: int = 1, **kwargs) -> np.ndarray([]):
         """
         Samples points from the layer.
         
@@ -290,7 +318,7 @@ class ImageLayer(Layer2D):
         Returns:
             np.ndarray([]): The sampled points."""
 
-        return self._sampler.sample_image(num=num)
+        return self._sampler.sample_image(num=num, bounds=self._bounds, **kwargs)
 
 class NormalMapLayer(Layer4D):
     """
@@ -307,7 +335,7 @@ class NormalMapLayer(Layer4D):
 
         self._bounds = None
 
-    def sample(self, query_point: np.ndarray, num: int = 1):
+    def sample(self, query_point: np.ndarray, num: int = 1, **kwargs):
         """
         Samples points from the layer.
         
@@ -320,11 +348,11 @@ class NormalMapLayer(Layer4D):
         
         return self._sampler(num=num, bounds=self._bounds, query_point=query_point)
     
-    def __call__(self, query_point: np.ndarray, num: int = 1) -> np.ndarray([]):
+    def __call__(self, query_point: np.ndarray, num: int = 1, **kwargs) -> np.ndarray([]):
         """
         Samples points from the layer, projects them and transforms them."""
 
-        points = self.sample(num = num, query_point=query_point)
+        points = self.sample(num = num, query_point=query_point, **kwargs)
         points = self.project(points)
         points = self.transform(points)
         return points
@@ -373,7 +401,7 @@ class LineLayer(Layer1D):
     def createMask(self) -> None:
         pass
 
-    def sample(self, num: int = 1) -> np.ndarray([]):
+    def sample(self, num: int = 1, **kwargs) -> np.ndarray([]):
         """
         Samples points from the layer.
         
@@ -383,7 +411,7 @@ class LineLayer(Layer1D):
         Returns:
             np.ndarray([]): The sampled points."""
         
-        return self._sampler(num=num, bounds=self._bounds)
+        return self._sampler(num=num, bounds=self._bounds, **kwargs)
 
 class CircleLayer(Layer1D):
     """
@@ -434,7 +462,7 @@ class CircleLayer(Layer1D):
     def createMask(self) -> None:
         pass
 
-    def sample(self, num: int = 1) -> np.ndarray([]):
+    def sample(self, num: int = 1, **kwargs) -> np.ndarray([]):
         """
         Samples points from the layer.
         Projects from polar coordinates to x,y coordinates.
@@ -445,7 +473,7 @@ class CircleLayer(Layer1D):
         Returns:
             np.ndarray([]): The sampled points."""
 
-        theta = self._sampler(num=num, bounds=self._bounds)
+        theta = self._sampler(num=num, bounds=self._bounds, **kwargs)
         x = self._layer_cfg.center[0] + np.cos(theta)*self._layer_cfg.radius*self._layer_cfg.alpha
         y = self._layer_cfg.center[1] + np.sin(theta)*self._layer_cfg.radius*self._layer_cfg.beta
         return np.stack([x,y]).T[0]
@@ -515,7 +543,7 @@ class PlaneLayer(Layer2D):
     def createMask(self) -> None:
         pass
 
-    def sample(self, num: int = 1) -> np.ndarray([]):
+    def sample(self, num: int = 1, **kwargs) -> np.ndarray([]):
         """
         Samples points from the layer.
         
@@ -525,7 +553,7 @@ class PlaneLayer(Layer2D):
         Returns:
             np.ndarray([]): The sampled points."""
         
-        return self._sampler(num=num, bounds=self._bounds)
+        return self._sampler(num=num, bounds=self._bounds, **kwargs)
 
 class DiskLayer(Layer2D):
     """
@@ -582,7 +610,7 @@ class DiskLayer(Layer2D):
     def createMask(self) -> None:
         pass
 
-    def sample(self, num: int = 1) -> np.ndarray([]):
+    def sample(self, num: int = 1, **kwargs) -> np.ndarray([]):
         """
         Samples points from the layer.
         
@@ -592,7 +620,7 @@ class DiskLayer(Layer2D):
         Returns:
             np.ndarray([]): The sampled points."""
         
-        rand = self._sampler(num=num, bounds=self._bounds, area=self._area)
+        rand = self._sampler(num=num, bounds=self._bounds, area=self._area, **kwargs)
 
         r_rescaled = (self._layer_cfg.radius_min + rand[:,0] * (self._layer_cfg.radius_max - self._layer_cfg.radius_min)) / self._layer_cfg.radius_max
         r = np.sqrt(r_rescaled) * self._layer_cfg.radius_max
@@ -652,7 +680,7 @@ class CubeLayer(Layer3D):
     def createMask(self) -> None:
         pass
 
-    def sample(self, num:int =1) -> np.ndarray([]):
+    def sample(self, num:int =1, **kwargs) -> np.ndarray([]):
         """
         Samples points from the layer.
         
@@ -662,7 +690,7 @@ class CubeLayer(Layer3D):
         Returns:
             np.ndarray([]): The sampled points."""
         
-        return self._sampler(num=num, bounds=self._bounds)
+        return self._sampler(num=num, bounds=self._bounds, **kwargs)
 
 class RollPitchYawLayer(Layer4D):
     """
@@ -715,7 +743,7 @@ class RollPitchYawLayer(Layer4D):
     def createMask(self) -> None:
         pass
 
-    def sample(self, num:int =1) -> np.ndarray([]):
+    def sample(self, num:int =1, **kwargs) -> np.ndarray([]):
         """
         Samples points from the layer.
         
@@ -725,7 +753,7 @@ class RollPitchYawLayer(Layer4D):
         Returns:
             np.ndarray([]): The sampled points."""
 
-        rand = self._sampler(num=num, bounds=self._bounds)
+        rand = self._sampler(num=num, bounds=self._bounds, **kwargs)
         # Batch RPY 2 Quat
         quat = rpy2quat(rand)
         return quat
@@ -791,7 +819,7 @@ class SphereLayer(Layer3D):
     def createMask(self) -> None:
         pass
 
-    def sample(self, num:int = 1) -> np.ndarray([]):
+    def sample(self, num:int = 1, **kwargs) -> np.ndarray([]):
         """
         Samples points from the layer.
         
@@ -801,7 +829,7 @@ class SphereLayer(Layer3D):
         Returns:
             np.ndarray([]): The sampled points."""
         
-        rand = self._sampler(num=num, bounds=self._bounds, area=self._area)
+        rand = self._sampler(num=num, bounds=self._bounds, area=self._area, **kwargs)
 
         r_rescaled = (self._layer_cfg.radius_min + rand[:,0] * (self._layer_cfg.radius_max - self._layer_cfg.radius_min)) / self._layer_cfg.radius_max
         r = np.sqrt(r_rescaled) * self._layer_cfg.radius_max
@@ -873,7 +901,7 @@ class CylinderLayer(Layer3D):
     def createMask(self) -> None:
         pass
 
-    def sample(self, num: int = 1) -> np.ndarray([]):
+    def sample(self, num: int = 1, **kwargs) -> np.ndarray([]):
         """
         Samples points from the layer.
         
@@ -883,7 +911,7 @@ class CylinderLayer(Layer3D):
         Returns:
             np.ndarray([]): The sampled points."""
 
-        rand = self._sampler(num=num, bounds=self._bounds, area=self._area)
+        rand = self._sampler(num=num, bounds=self._bounds, area=self._area, **kwargs)
 
         r_rescaled = (self._layer_cfg.radius_min + rand[:,0] * (self._layer_cfg.radius_max - self._layer_cfg.radius_min)) / self._layer_cfg.radius_max
         r = np.sqrt(r_rescaled) * self._layer_cfg.radius_max
@@ -955,7 +983,7 @@ class ConeLayer(Layer3D):
     def createMask(self) -> None:
         pass
 
-    def sample(self, num: int = 1) -> np.ndarray([]):
+    def sample(self, num: int = 1, **kwargs) -> np.ndarray([]):
         """
         Samples points from the layer.
         
@@ -965,7 +993,7 @@ class ConeLayer(Layer3D):
         Returns:
             np.ndarray([]): The sampled points."""
 
-        rand = self._sampler(num=num, bounds=self._bounds, area=self._area)
+        rand = self._sampler(num=num, bounds=self._bounds, area=self._area, **kwargs)
 
         r_rescaled = (self._layer_cfg.radius_min + rand[:,0] * (self._layer_cfg.radius_max - self._layer_cfg.radius_min)) / self._layer_cfg.radius_max
         r = np.sqrt(r_rescaled) * self._layer_cfg.radius_max
@@ -1039,7 +1067,7 @@ class TorusLayer(Layer3D):
     def createMask(self) -> None:
         pass
 
-    def sample(self, num: int = 1) -> np.ndarray([]):
+    def sample(self, num: int = 1, **kwargs) -> np.ndarray([]):
         """
         Samples points from the layer.
         
@@ -1049,7 +1077,7 @@ class TorusLayer(Layer3D):
         Returns:
             np.ndarray([]): The sampled points."""
 
-        rand = self._sampler(num=num, bounds=self._bounds, area=self._area)
+        rand = self._sampler(num=num, bounds=self._bounds, area=self._area, **kwargs)
 
         r2_rescaled = (self._layer_cfg.radius2_min + rand[:,0] * (self._layer_cfg.radius2_max - self._layer_cfg.radius2_min)) / self._layer_cfg.radius2_max
         r2 = np.sqrt(r2_rescaled) * self._layer_cfg.radius2_max

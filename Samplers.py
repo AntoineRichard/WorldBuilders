@@ -22,7 +22,12 @@ class BaseSampler:
             return self.sample(**kwargs)
         
     def setMask(self, mask: np.ndarray, mpp: float):
-        raise NotImplementedError()
+        self.mask = mask.copy()
+        self.H,self.W = self.mask.shape
+        self.mpp = mpp
+
+        self.idx = np.arange(self.mask.flatten().shape[0])
+        self.p = self.mask.flatten()*1.0 / np.sum(self.mask)
 
     def sample(self, **kwargs):
         raise NotImplementedError()
@@ -41,14 +46,6 @@ class UniformSampler(BaseSampler):
     # Uniformly samples points.
     def __init__(self, sampler_cfg: UniformSampler_T):
         super().__init__(sampler_cfg)
-
-    def setMask(self, mask: np.ndarray, mpp: float):
-        self.mask = mask.copy()
-        self.H,self.W = self.mask.shape
-        self.mpp = mpp
-
-        self.idx = np.arange(self.mask.flatten().shape[0])
-        self.p = self.mask.flatten()*1.0 / np.sum(self.mask)
 
     def sample(self, num=1, **kwargs):
         points = np.stack([self._rng.uniform(self._sampler_cfg.min[dim], self._sampler_cfg.max[dim], (num)) for dim in range(self._sampler_cfg.randomization_space)]).T
@@ -86,14 +83,6 @@ class HardCoreUniformSampler(BaseSampler):
     # Uniformly samples points.
     def __init__(self, sampler_cfg: HardCoreUniformSampler_T):
         super().__init__(sampler_cfg)
-
-    def setMask(self, mask: np.ndarray, mpp: float):
-        self.mask = mask.copy()
-        self.H,self.W = self.mask.shape
-        self.mpp = mpp
-
-        self.idx = np.arange(self.mask.flatten().shape[0])
-        self.p = self.mask.flatten()*1.0 / np.sum(self.mask)
 
     def get_points_sample(self, num=1, **kwargs):
         points = np.stack([self._rng.uniform(self._sampler_cfg.min[dim], self._sampler_cfg.max[dim], (num)) for dim in range(self._sampler_cfg.randomization_space)]).T
@@ -254,17 +243,6 @@ class MaternClusterPointSampler(BaseSampler):
     def __init__(self, sampler_cfg: MaternClusterPointSampler_T):
         super().__init__(sampler_cfg)
 
-    def setMaskAndOffset(self, mask: np.ndarray, offset: tuple, resolution: float):
-        self.mask = mask.copy()
-        self.offset = np.array(offset)
-        self.resolution = resolution
-
-        pd = self.mask * 1.0
-
-        masked_pd = mask * pd
-        self.idx = np.arange(masked_pd.flatten().shape[0])
-        self.p = masked_pd / np.sum(masked_pd)
-
     def getParents(self, bounds, area=None):
         if self._sampler_cfg.warp is not None:
             bounds_ext = (np.array(bounds).T*np.array(self._sampler_cfg.warp)).T
@@ -280,6 +258,39 @@ class MaternClusterPointSampler(BaseSampler):
         coords = []
         for i in range(bounds_ext.shape[0]):
             coords.append(bounds_ext[i,0] + (bounds_ext[i,1] - bounds_ext[i,0]) * self._rng.uniform(0, 1, num_points_parent))
+        return np.stack(coords).T
+    
+    def getParentsImage(self, bounds, area=None): 
+        if self._sampler_cfg.warp is not None:
+            bounds_ext = (np.array(bounds).T*np.array(self._sampler_cfg.warp)).T
+        else:
+            print(bounds)
+            bounds_ext = np.array(bounds)
+        bounds_ext[:,0] -= self._sampler_cfg.cluster_radius
+        bounds_ext[:,1] += self._sampler_cfg.cluster_radius
+        if area is None:
+            area_ext = np.prod(bounds_ext[:,1] - bounds_ext[:,0])
+            area_ext = area_ext * np.sum(self.mask) / self.mask.flatten().shape[0] 
+        else:
+            area_ext = area
+        
+        num_points_parent = self._rng.poisson(area_ext * self._sampler_cfg.lambda_parent)
+        coords = []
+        for i in range(bounds_ext.shape[0]):
+            coords.append(bounds_ext[i,0] + (bounds_ext[i,1] - bounds_ext[i,0]) * self._rng.uniform(0, 1, num_points_parent))
+
+        idx = self._rng.choice(self.idx, p = self.p, size=num_points_parent)
+        local = self._rng.uniform(0, self.mpp, size=(num_points_parent, self._sampler_cfg.randomization_space))
+        if self._sampler_cfg.randomization_space == 2:
+            y = self.H - idx // self.mask.shape[1]
+            x = idx % self.mask.shape[1]
+            return np.stack([x,y]).T*self.mpp + local
+        if self._sampler_cfg.randomization_space == 3:
+            x = idx // self.mask.shape[2] // self.mask.shape[1]
+            y = idx // self.mask.shape[2] % self.mask[1]
+            z = idx % self.mask.shape[2] % self.mask.shape[1]
+            return np.stack([x,y,z]).T*self.mpp + local
+    
         return np.stack(coords).T
 
     def getDaughters(self, parents_coords):
@@ -306,27 +317,66 @@ class MaternClusterPointSampler(BaseSampler):
             daughter_coords = daughter_coords / np.array(self._sampler_cfg.warp)
         correct = self._check_fn(daughter_coords)
         return daughter_coords[correct]
+    
+    def getDaughtersImage(self, parents_coords, bounds):
+        num_points_daughter = self._rng.poisson(self._sampler_cfg.lambda_daughter, parents_coords.shape[0])
+        num_points = sum(num_points_daughter)
+        # simulating independent variables.
+        theta = 2 * np.pi * self._rng.uniform(0, 1, num_points);  # angular coordinates
+        rho = self._sampler_cfg.cluster_radius * np.sqrt(np.random.uniform(0, 1, num_points));  # radial coordinates
+        if self._sampler_cfg.randomization_space == 3:
+            # Convert from spherical to Cartesian coordinates
+            phi = 2 * np.pi * self._rng.uniform(0, 1, num_points);  # angular coordinates
+            x = np.sin(phi)*np.cos(theta)*rho
+            y = np.sin(phi)*np.sin(theta)*rho
+            z = np.cos(phi)*rho
+            daughter_coords = np.stack([x,y,z]).T
+        else:
+            # Convert from polar to Cartesian coordinates
+            x = rho*np.cos(theta)
+            y = rho*np.sin(theta)
+            daughter_coords = np.stack([x,y]).T
 
-    def sample(self, bounds=[], area=None, **kwargs):
-        parents_coords = self.getParents(bounds, area=area)
-        points = self.getDaughters(parents_coords)
+        parents_coords = np.repeat(parents_coords.T, num_points_daughter,axis=-1).T
+        daughter_coords = daughter_coords + parents_coords
+        if self._sampler_cfg.warp is not None:
+            daughter_coords = daughter_coords / np.array(self._sampler_cfg.warp)
+        correct = self._check_fn(daughter_coords)
+        daughter_coords = daughter_coords[correct]
+
+        if self._sampler_cfg.randomization_space == 3:
+            x = (daughter_coords[:,0] / self.mpp).astype(np.int32)
+            y = (daughter_coords[:,1] / self.mpp).astype(np.int32)
+            z = (daughter_coords[:,2] / self.mpp).astype(np.int32)
+            mask = self.mask[x,y,z].astype(bool)
+        else:
+            x = (daughter_coords[:,0] / self.mpp).astype(np.int32)
+            y = (daughter_coords[:,1] / self.mpp).astype(np.int32)
+            y = self.H - y - 1
+            mask = self.mask[y, x].astype(bool)
+
+        daughter_coords = daughter_coords[mask]
+
+        return daughter_coords
+
+    def sample(self, bounds=[], area=None, parents=[], **kwargs):
+        if self._sampler_cfg.inherit_parents and len(parents):
+            self.parents_coords = parents
+        else:
+            self.parents_coords = self.getParents(bounds, area=area)
+        points = self.getDaughters(self.parents_coords)
         return points
     
     def sample_equation_based_rejection(self, bounds=[], **kwargs):
         return self.sample(bounds, **kwargs)
 
-    def sample_image(self, num):
-        idx = self._rng.choice(self.idx, p = self.p, size=num)
-        local = self._rng.uniform(0, self.resolution, size=(num,self._sampler_cfg.randomization_space))
-        if self._sampler_cfg.randomization_space == 2:
-            x = idx // self.mask.shape[1]
-            y = idx % self.mask.shape[1]
-            return np.stack([x,y]).T + local
-        if self._sampler_cfg.randomization_space == 3:
-            x = idx // self.mask.shape[2] // self.mask.shape[1]
-            y = idx // self.mask.shape[2] % self.mask[1]
-            z = idx % self.mask.shape[2] % self.mask.shape[1]
-            return np.stack([x,y,z]).T + local
+    def sample_image(self, bounds=[], area=None, parents=[], **kwargs):
+        if self._sampler_cfg.inherit_parents and len(parents):
+            self.parents_coords = parents
+        else:
+            self.parents_coords = self.getParentsImage(bounds, area=area)
+        points = self.getDaughtersImage(self.parents_coords, bounds)
+        return points
 
 class HardCoreMaternClusterPointSampler(BaseSampler):
     # Samples points in a layer defined space using a Matern cluser point process. 
@@ -399,12 +449,12 @@ class HardCoreMaternClusterPointSampler(BaseSampler):
         return boole_keep
 
     def simulateProcess(self, bounds, area=None):
-        parents_coords = self.getParents(bounds, area)
-        daughter_coords = self.getDaughters(parents_coords)
+        self.parents_coords = self.getParents(bounds, area)
+        daughter_coords = self.getDaughters(self.parents_coords)
         for _ in range(self._sampler_cfg.num_repeat):
             boole_keep = self.hardCoreRejection(daughter_coords)
             daughter_coords=daughter_coords[boole_keep]
-            daughter_coords = np.concatenate([daughter_coords, self.getDaughters(parents_coords)])
+            daughter_coords = np.concatenate([daughter_coords, self.getDaughters(self.parents_coords)])
         boole_keep = self.hardCoreRejection(daughter_coords)
         daughter_coords=daughter_coords[boole_keep]
 
@@ -463,6 +513,38 @@ class ThomasClusterSampler(BaseSampler):
         for i in range(bounds_ext.shape[0]):
             coords.append(bounds_ext[i,0] + (bounds_ext[i,1] - bounds_ext[i,0]) * self._rng.uniform(0, 1, num_points_parent))
         return np.stack(coords).T
+    
+    def getParentsImage(self, bounds, area=None): 
+        if self._sampler_cfg.warp is not None:
+            bounds_ext = (np.array(bounds).T*np.array(self._sampler_cfg.warp)).T
+        else:
+            print(bounds)
+            bounds_ext = np.array(bounds)
+        bounds_ext[:,0] -= self._sampler_cfg.sigma*6
+        bounds_ext[:,1] += self._sampler_cfg.sigma*6
+        if area is None:
+            area_ext = np.prod(bounds_ext[:,1] - bounds_ext[:,0])
+            area_ext = area_ext * np.sum(self.mask) / self.mask.flatten().shape[0] 
+        else:
+            area_ext = area
+        
+        num_points_parent = self._rng.poisson(area_ext * self._sampler_cfg.lambda_parent)
+        coords = []
+        for i in range(bounds_ext.shape[0]):
+            coords.append(bounds_ext[i,0] + (bounds_ext[i,1] - bounds_ext[i,0]) * self._rng.uniform(0, 1, num_points_parent))
+
+        idx = self._rng.choice(self.idx, p = self.p, size=num_points_parent)
+        local = self._rng.uniform(0, self.mpp, size=(num_points_parent, self._sampler_cfg.randomization_space))
+        if self._sampler_cfg.randomization_space == 2:
+            y = self.H - idx // self.mask.shape[1]
+            x = idx % self.mask.shape[1]
+            return np.stack([x,y]).T*self.mpp + local
+        if self._sampler_cfg.randomization_space == 3:
+            x = idx // self.mask.shape[2] // self.mask.shape[1]
+            y = idx // self.mask.shape[2] % self.mask[1]
+            z = idx % self.mask.shape[2] % self.mask.shape[1]
+            return np.stack([x,y,z]).T*self.mpp + local 
+        return np.stack(coords).T
 
     def getDaughters(self, parents_coords):
         num_points_daughter = self._rng.poisson(self._sampler_cfg.lambda_daughter, parents_coords.shape[0])
@@ -481,27 +563,59 @@ class ThomasClusterSampler(BaseSampler):
             daughter_coords = daughter_coords / np.array(self._sampler_cfg.warp)
         correct = self._check_fn(daughter_coords)
         return daughter_coords[correct]
+    
+    def getDaughtersImage(self, parents_coords, bounds):
+        num_points_daughter = self._rng.poisson(self._sampler_cfg.lambda_daughter, parents_coords.shape[0])
+        num_points = sum(num_points_daughter)
+        # simulating independent variables.
+        x = self._rng.normal(0, self._sampler_cfg.sigma, num_points)
+        y = self._rng.normal(0, self._sampler_cfg.sigma, num_points)
+        if self._sampler_cfg.randomization_space == 3:
+            z = self._rng.normal(0, self._sampler_cfg.sigma, num_points)
+            daughter_coords = np.stack([x,y,z]).T
+        else:
+            daughter_coords = np.stack([x,y]).T
+        parents_coords = np.repeat(parents_coords.T, num_points_daughter,axis=-1).T
+        daughter_coords = daughter_coords + parents_coords
+        if self._sampler_cfg.warp is not None:
+            daughter_coords = daughter_coords / np.array(self._sampler_cfg.warp)
+        correct = self._check_fn(daughter_coords)
+        daughter_coords = daughter_coords[correct]
 
-    def sample(self, bounds=[], area=None, **kwargs):
-        parents_coords = self.getParents(bounds, area=area)
-        points = self.getDaughters(parents_coords)
+        if self._sampler_cfg.randomization_space == 3:
+            x = (daughter_coords[:,0] / self.mpp).astype(np.int32)
+            y = (daughter_coords[:,1] / self.mpp).astype(np.int32)
+            z = (daughter_coords[:,2] / self.mpp).astype(np.int32)
+            mask = self.mask[x,y,z].astype(bool)
+        else:
+            x = (daughter_coords[:,0] / self.mpp).astype(np.int32)
+            y = (daughter_coords[:,1] / self.mpp).astype(np.int32)
+            y = self.H - y - 1
+            mask = self.mask[y, x].astype(bool)
+
+        daughter_coords = daughter_coords[mask]
+
+        return daughter_coords
+
+    def sample(self, bounds=[], area=None, parents=[], **kwargs):
+        if self._sampler_cfg.inherit_parents and len(parents):
+            self.parents_coords = parents
+        else:
+            self.parents_coords = self.getParents(bounds, area=area)
+        points = self.getDaughters(self.parents_coords)
         return points
     
-    def sample_equation_based_rejection(self, bounds=[], **kwargs):
-        return self.sample(bounds, **kwargs)
+    def sample_equation_based_rejection(self, bounds=[], parents=[], **kwargs):
+        return self.sample(bounds=bounds, parents=parents, **kwargs)
 
-    def sample_image(self, num):
-        idx = self._rng.choice(self.idx, p = self.p, size=num)
-        local = self._rng.uniform(0, self.resolution, size=(num,self._sampler_cfg.randomization_space))
-        if self._sampler_cfg.randomization_space == 2:
-            x = idx // self.mask.shape[1]
-            y = idx % self.mask.shape[1]
-            return np.stack([x,y]).T + local
-        if self._sampler_cfg.randomization_space == 3:
-            x = idx // self.mask.shape[2] // self.mask.shape[1]
-            y = idx // self.mask.shape[2] % self.mask[1]
-            z = idx % self.mask.shape[2] % self.mask.shape[1]
-            return np.stack([x,y,z]).T + local
+    def sample_image(self, bounds=[], area=None, parents=[], **kwargs):
+        if self._sampler_cfg.inherit_parents and len(parents):
+            self.parents_coords = parents
+        else:
+            self.parents_coords = self.getParentsImage(bounds, area=area)
+        points = self.getDaughtersImage(self.parents_coords, bounds)
+        return points
+
 
 class HardCoreThomasClusterSampler(BaseSampler):
     # Samples points in a layer defined space using a Matern cluser point process. 
@@ -567,12 +681,12 @@ class HardCoreThomasClusterSampler(BaseSampler):
         return boole_keep
 
     def simulateProcess(self, bounds, area=None):
-        parents_coords = self.getParents(bounds, area=area)
-        daughter_coords = self.getDaughters(parents_coords)
+        self.parents_coords = self.getParents(bounds, area=area)
+        daughter_coords = self.getDaughters(self.parents_coords)
         for _ in range(self._sampler_cfg.num_repeat):
             boole_keep = self.hardCoreRejection(daughter_coords)
             daughter_coords=daughter_coords[boole_keep]
-            daughter_coords = np.concatenate([daughter_coords, self.getDaughters(parents_coords)])
+            daughter_coords = np.concatenate([daughter_coords, self.getDaughters(self.parents_coords)])
         boole_keep = self.hardCoreRejection(daughter_coords)
         daughter_coords=daughter_coords[boole_keep]
         return daughter_coords

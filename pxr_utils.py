@@ -46,8 +46,17 @@ def addDefaultOps(prim):
 def setDefaultOps(xform, pos: tuple, rot: tuple, scale: tuple):
     xform_ops = xform.GetOrderedXformOps()
     xform_ops[0].Set(Gf.Vec3d(float(pos[0]), float(pos[1]), float(pos[2])))
-    xform_ops[1].Set(Gf.Quatf(float(rot[3]), float(rot[0]), float(rot[1]), float(rot[2])))
+    try:
+        xform_ops[1].Set(Gf.Quatf(float(rot[3]), float(rot[0]), float(rot[1]), float(rot[2])))
+    except:
+        xform_ops[1].Set(Gf.Quatd(float(rot[3]), float(rot[0]), float(rot[1]), float(rot[2])))
     xform_ops[2].Set(Gf.Vec3d(float(scale[0]), float(scale[1]), float(scale[2])))
+
+def setDefaultOpsTyped(xform, pos, rot, scale):
+    xform_ops = xform.GetOrderedXformOps()
+    xform_ops[0].Set(pos)
+    xform_ops[1].Set(rot)
+    xform_ops[2].Set(scale)
 
 def loadTexture(stage, mdl_path, scene_path, sub_intentifier):
     #omni.kit.commands.execute(
@@ -84,7 +93,7 @@ def createObject(prefix,
     stage,
     path,
     position=Gf.Vec3d(0, 0, 0),
-    rotation=Gf.Rotation(Gf.Vec3d(0,0,1), 0),
+    rotation=Gf.Quatf(0,0,0,1),
     scale=Gf.Vec3d(1,1,1),
     is_instance=True,
 ) -> tuple:
@@ -96,9 +105,10 @@ def createObject(prefix,
     if is_instance:
         obj_prim.SetInstanceable(True)
     xform = UsdGeom.Xformable(obj_prim)
-    setScale(xform, scale)
-    print(rotation, position)
-    setTransform(xform, getTransform(rotation, position))
+    #setScale(xform, scale)
+    setDefaultOpsTyped(xform, position, rotation, scale)
+    #print(rotation, position)
+    #setTransform(xform, getTransform(rotation, position))
     return obj_prim, prim_path
 
 def addCollision(stage, path, mode="none"):
@@ -138,6 +148,15 @@ def createInstancerAndCache(stage, path, asset_list):
         #prim_sd.add_entry("class", "rock")
         # Add this asset to the list of instantiable objects.
         instancer.GetPrototypesRel().AddTarget(prim_path)
+    # Set some dummy parameters
+    setInstancerParameters(stage, path, pos=np.zeros((1,3))) 
+
+def createInstancerFromCache(stage, path, cache_path):
+    # Creates a point instancer
+    instancer = createStandaloneInstance(stage, path)
+    # Add each asset to the scene in the cache.
+    for asset in Usd.PrimRange(stage.GetPrimAtPath(cache_path)):
+        instancer.GetPrototypesRel().AddTarget(asset.GetPath())
     # Set some dummy parameters
     setInstancerParameters(stage, path, pos=np.zeros((1,3))) 
 

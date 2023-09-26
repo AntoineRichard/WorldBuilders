@@ -8,30 +8,37 @@ import copy
 
 class MetaLayer:
     def __init__(self, layer_cfg: Layer_T, sampler_cfg: Sampler_T) -> None:
-        print(sampler_cfg)
-        print(layer_cfg)
         if isinstance(sampler_cfg, Sampler_T):
             self.layer = Layer_Factory.get(layer_cfg, sampler_cfg)
         else:
             self.layer = Clipping_Layer_Factory.get(layer_cfg, sampler_cfg)
 
-    def __call__(self, num=1, query_point=None, **kwargs) -> np.ndarray([]):
+    def __call__(self, num=1, query_point=None, parents=[], **kwargs) -> np.ndarray([]):
         if query_point is not None:
             return self.layer(query_point=query_point, num=num, **kwargs)
         else:
-            return self.layer(num, **kwargs)
+            return self.layer(num, parents=parents, **kwargs)
 
 class RequestMixer:
     def __init__(self, requests: tuple()) -> None:
         self.requests = requests
         self.has_point_process = False
+        self.point_process_inherits_parents = False
         self.point_process_attr = None
         self.parseRequests()
         self.buildExecutionGraph()
 
-    def __call__(self, num) -> None:
-        self.executeGraph(num)
+    def __call__(self, num=1, parents=[]) -> None:
+        self.executeGraph(num=num, parents=parents)
 
+    def getParents(self):
+        attributes = self.execution_graph
+        # Grab the point process first as it determines the number of elements to sample for
+        if self.point_process_attr is not None:
+            parents = self.execution_graph[self.point_process_attr]["meta_layer"][0].layer._sampler.parents_coords
+        else:
+            parents = []
+        return parents
 
     def parseRequests(self):
         # Take all the requests and sort them by parameters(Position_T, Scale_T, Orientation_T)
@@ -49,6 +56,8 @@ class RequestMixer:
             axes = []
             for i, req in enumerate(requests_per_type[reqs_key]):
                 if isinstance(req.sampler, PointProcess_T):
+                    if req.sampler.inherit_parents:
+                        self.point_process_inherits_parents = True
                     point_processes += 1
                     assert point_processes <= 1, "An error occured while parsing the requests. There can only be one point process."
                     self.has_point_process = True
@@ -116,9 +125,10 @@ class RequestMixer:
                     to_exec["axes"].append([0])
             self.execution_graph[attribute_name] = to_exec
 
-    def executeGraph(self, num):
+    def executeGraph(self, num=1, parents=[]):
         output = {}
         attributes = self.execution_graph
+        # Grab the point process first as it determines the number of elements to sample for
         if self.point_process_attr is not None:
             tmp = [self.point_process_attr]
             for attr in attributes:
@@ -129,7 +139,6 @@ class RequestMixer:
         query_points = None
         points = None
         for attribute in attributes:
-            print(attribute)
             current_order = []
             to_exec = self.execution_graph[attribute]
             p_list = []
@@ -150,13 +159,16 @@ class RequestMixer:
                     current_order += to_exec["order"][j]
                     p_list.append(points)
                 else:
-                    points = to_exec["meta_layer"][j](num) #"sample" method of sampler is called here.
+                    if self.has_point_process and is_first and self.point_process_inherits_parents:
+                        points = to_exec["meta_layer"][j](num, parents=parents) #"sample" method of sampler is called here.
+                    else:
+                        points = to_exec["meta_layer"][j](num) #"sample" method of sampler is called here.
                     points = np.stack([points[:,i] for i in to_exec["replicate"][j]]).T
                     current_order += to_exec["order"][j]
                     p_list.append(points)
                     if self.has_point_process and is_first:
-                        num = points.shape[0]
-                        is_first = False
+                            num = points.shape[0]
+                            is_first = False
             points = np.concatenate(p_list,axis=-1)
             remapped = [current_order.index(i) for i in range(len(current_order))]
             points = np.stack([points[:,i] for i in remapped]).T

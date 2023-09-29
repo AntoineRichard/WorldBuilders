@@ -38,9 +38,9 @@ def addDefaultOps(prim):
     prim = UsdGeom.Xform(prim)
     prim.ClearXformOpOrder()
 
-    prim.AddTranslateOp()
-    prim.AddOrientOp()
-    prim.AddScaleOp()
+    prim.AddTranslateOp(precision = UsdGeom.XformOp.PrecisionDouble)
+    prim.AddOrientOp(precision = UsdGeom.XformOp.PrecisionDouble)
+    prim.AddScaleOp(precision = UsdGeom.XformOp.PrecisionDouble)
     return prim
 
 def setDefaultOps(xform, pos: tuple, rot: tuple, scale: tuple):
@@ -93,7 +93,7 @@ def createObject(prefix,
     stage,
     path,
     position=Gf.Vec3d(0, 0, 0),
-    rotation=Gf.Quatf(0,0,0,1),
+    rotation=Gf.Quatd(0,0,0,1),
     scale=Gf.Vec3d(1,1,1),
     is_instance=True,
 ) -> tuple:
@@ -106,6 +106,7 @@ def createObject(prefix,
         obj_prim.SetInstanceable(True)
     xform = UsdGeom.Xformable(obj_prim)
     #setScale(xform, scale)
+    addDefaultOps(xform)
     setDefaultOpsTyped(xform, position, rotation, scale)
     #print(rotation, position)
     #setTransform(xform, getTransform(rotation, position))

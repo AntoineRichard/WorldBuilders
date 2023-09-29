@@ -383,6 +383,9 @@ class HardCore_T:
     core_radius: float = 0.02
     num_repeat: int = 0
 
+class InterativePointProcess_T(PointProcess_T):
+    inherit_parents: bool = False
+
 @dataclasses.dataclass
 class UniformSampler_T(Sampler_T):
     min: tuple = ()
@@ -426,7 +429,7 @@ class NormalSampler_T(Sampler_T):
             self.std = np.array(self.std).reshape(self.randomization_space,self.randomization_space)
 
 @dataclasses.dataclass
-class MaternClusterPointSampler_T(PointProcess_T):
+class MaternClusterPointSampler_T(InterativePointProcess_T):
     lambda_parent: int = 10  # density of parent Poisson point process
     lambda_daughter: int = 100  # mean number of points in each cluster
     cluster_radius: float = 0.1  # radius of cluster disk (for daughter points) 
@@ -439,7 +442,7 @@ class MaternClusterPointSampler_T(PointProcess_T):
             assert len(self.warp) == self.randomization_space, "warp parameter must be of same length as the randomization space."
 
 @dataclasses.dataclass
-class HardCoreMaternClusterPointSampler_T(PointProcess_T):
+class HardCoreMaternClusterPointSampler_T(InterativePointProcess_T):
     lambda_parent: int = 10  # density of parent Poisson point process
     lambda_daughter: int = 100  # mean number of points in each cluster
     cluster_radius: float = 0.1  # radius of cluster disk (for daughter points) 
@@ -454,7 +457,7 @@ class HardCoreMaternClusterPointSampler_T(PointProcess_T):
             assert len(self.warp) == self.randomization_space, "warp parameter must be of same length as the randomization space."
 
 @dataclasses.dataclass
-class ThomasClusterSampler_T(PointProcess_T):
+class ThomasClusterSampler_T(InterativePointProcess_T):
     lambda_parent: int = 10  # density of parent Poisson point process
     lambda_daughter: int = 100  # mean number of points in each cluster
     sigma: float = 0.05
@@ -467,7 +470,7 @@ class ThomasClusterSampler_T(PointProcess_T):
             assert len(self.warp) == self.randomization_space, "warp parameter must be of same length as the randomization space."
 
 @dataclasses.dataclass
-class HardCoreThomasClusterSampler_T(PointProcess_T):
+class HardCoreThomasClusterSampler_T(InterativePointProcess_T):
     lambda_parent: int = 10  # density of parent Poisson point process
     lambda_daughter: int = 100  # mean number of points in each cluster
     sigma: float = 0.05 

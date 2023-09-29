@@ -55,7 +55,7 @@ class RequestMixer:
         for reqs_key in requests_per_type.keys():
             axes = []
             for i, req in enumerate(requests_per_type[reqs_key]):
-                if isinstance(req.sampler, PointProcess_T):
+                if isinstance(req.sampler, InterativePointProcess_T):
                     if req.sampler.inherit_parents:
                         self.point_process_inherits_parents = True
                     point_processes += 1

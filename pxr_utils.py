@@ -98,13 +98,21 @@ def addDefaultOps(prim: Usd.Prim,
     
     Returns:
         UsdGeom.Xform: The Xform of the prim."""
-    
     xform = UsdGeom.Xform(prim)
     xform.ClearXformOpOrder()
 
-    xform.AddTranslateOp(precision = UsdGeom.XformOp.PrecisionDouble)
-    xform.AddOrientOp(precision = UsdGeom.XformOp.PrecisionDouble)
-    xform.AddScaleOp(precision = UsdGeom.XformOp.PrecisionDouble)
+    try:
+        xform.AddTranslateOp(precision = UsdGeom.XformOp.PrecisionDouble)
+    except:
+        pass
+    try:
+        xform.AddOrientOp(precision = UsdGeom.XformOp.PrecisionDouble)
+    except:
+        pass
+    try:
+        xform.AddScaleOp(precision = UsdGeom.XformOp.PrecisionDouble)
+    except:
+        pass
     return xform
 
 def setDefaultOps(xform: UsdGeom.Xform,
@@ -121,13 +129,20 @@ def setDefaultOps(xform: UsdGeom.Xform,
         rot (tuple): The rotation as a quaternion.
         scale (tuple): The scale."""
     
+    xform = UsdGeom.Xform(xform)
     xform_ops = xform.GetOrderedXformOps()
-    xform_ops[0].Set(Gf.Vec3d(float(pos[0]), float(pos[1]), float(pos[2])))
+    try:
+        xform_ops[0].Set(Gf.Vec3d(float(pos[0]), float(pos[1]), float(pos[2])))
+    except:
+        xform_ops[0].Set(Gf.Vec3f(float(pos[0]), float(pos[1]), float(pos[2])))
     try:
         xform_ops[1].Set(Gf.Quatf(float(rot[3]), float(rot[0]), float(rot[1]), float(rot[2])))
     except:
         xform_ops[1].Set(Gf.Quatd(float(rot[3]), float(rot[0]), float(rot[1]), float(rot[2])))
-    xform_ops[2].Set(Gf.Vec3d(float(scale[0]), float(scale[1]), float(scale[2])))
+    try:
+        xform_ops[2].Set(Gf.Vec3d(float(scale[0]), float(scale[1]), float(scale[2])))
+    except:
+        xform_ops[2].Set(Gf.Vec3f(float(scale[0]), float(scale[1]), float(scale[2])))
 
 def setDefaultOpsTyped(xform: UsdGeom.Xform,
                        pos: Union[Gf.Vec3d, Gf.Vec3f],

@@ -2,10 +2,10 @@ import numpy as np
 import quaternion
 from .Types import *
 
-# I was in troublem deciding whether I should wrap BaseSampler or create new class and wrap it. 
+# I was in troublem deciding whether I should inherit BaseSampler or create new class and inherit it. 
 # Since Z-value clip function is deterministic, meaning z value is always determined based on heightmap. 
-# Therefore, there is no point in creating random distribution as done in BaseSampler and other wrapped class. 
-# So, I made BaseClipper method and new class called HeightClipper wraps BaseClipper. 
+# There is no point in creating random distribution as done in BaseSampler and other inheriting class. 
+# Thus, I made BaseClipper method and new class called HeightClipper and NormalMapClippter which inherit BaseClipper. 
 
 class BaseClipper:
     def __init__(self, sampler_cfg: Sampler_T):
@@ -33,10 +33,9 @@ class HeightClipper(BaseClipper):
         x = query_point[:, 0]
         y = query_point[:, 1]
         H, W = self.resolution
-        # cordinate transformation from xy to image plane
+        # from xy to uv coordinate
         us = x // self.mpp_resolution #horizontal
         vs = H * np.ones_like(y) - y // self.mpp_resolution #vertical
-        ##
         images = []
         for u, v in zip(us, vs):
             u = int(u)
@@ -54,9 +53,9 @@ class NormalMapClipper(BaseClipper):
         slope_y = np.arctan2(ny,1) #theta_y = tan^-1(ny)
         # magnitude = np.hypot(nx,ny)
         # slope_xy = np.arctan2(magnitude,1)
-        self.slope_x = slope_x
-        self.slope_y = slope_y
-        # self.slope_xy = slope_xy
+        self.slope_x = np.rad2deg(slope_x)
+        self.slope_y = np.rad2deg(slope_y)
+        # self.slope_xy = np.rad2deg(slope_xy)
         # self.magnitude = magnitude
 
     def sample(self, query_point:np.ndarray, **kwargs):

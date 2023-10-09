@@ -3,6 +3,8 @@ from .Layers import *
 from .Samplers import *
 from .Clippers import *
 from .ClippingLayers import *
+from .Parsers import *
+from .ParserLayers import *
 
 import copy
 
@@ -10,14 +12,18 @@ class MetaLayer:
     def __init__(self, layer_cfg: Layer_T, sampler_cfg: Sampler_T) -> None:
         if isinstance(sampler_cfg, Sampler_T):
             self.layer = Layer_Factory.get(layer_cfg, sampler_cfg)
-        else:
+        elif isinstance(sampler_cfg, Clipper_T):
             self.layer = Clipping_Layer_Factory.get(layer_cfg, sampler_cfg)
+        elif isinstance(sampler_cfg, Parser_T):
+            self.layer = Parser_Layer_Factory.get(layer_cfg, sampler_cfg)
 
-    def __call__(self, num=1, query_point=None, parents=[], **kwargs) -> np.ndarray([]):
+    def __call__(self, num=1, query_point=None, parents=None, **kwargs) -> np.ndarray([]):
         if query_point is not None:
             return self.layer(query_point=query_point, num=num, **kwargs)
-        else:
+        elif parents is not None:
             return self.layer(num, parents=parents, **kwargs)
+        else:
+            return self.layer(num, **kwargs)
 
 class RequestMixer:
     def __init__(self, requests: tuple()) -> None:
@@ -146,7 +152,7 @@ class RequestMixer:
                 if attribute == "xformOp:translation" and j == self.height_clip_id: #set z value DEM(x, y)
                     assert points is not None, "height clip must be called after sampling x, y position"
                     assert points.shape[-1] == 2, "2 dimensional vector is only allowed as an query point"
-                    query_points = copy.deepcopy(points) #store sampled x, y 
+                    query_points = copy.deepcopy(points) #store sampled x, y
                     points = to_exec["meta_layer"][j](query_point=query_points, num=num) #"sample" method of image clipper is called here.
                     points = np.stack([points[:,i] for i in to_exec["replicate"][j]]).T
                     current_order += to_exec["order"][j]

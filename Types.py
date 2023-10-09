@@ -340,6 +340,18 @@ class NormalMap_T(Layer_T):
     """
     No information needs to be passed
     """
+    
+@dataclasses.dataclass
+class Parser_Layer_T(Layer_T):
+    """
+    No information needs to be passed
+    """
+
+@dataclasses.dataclass
+class Perturbated_Parser_Layer_T(Layer_T):
+    """
+    No information needs to be passed
+    """
 
 #@dataclasses.dataclass
 #class Mask_T(Layer_T):
@@ -355,6 +367,36 @@ class NormalMap_T(Layer_T):
 #    data: np.ndarray([]) = None
 #    output_space: int = 2
 #    output_as_quaternions: bool = True
+
+
+##################################
+#                                #
+#            PARSER              # 
+#                                #
+##################################
+
+@dataclasses.dataclass
+class Parser_T:
+    randomization_space: int = 0
+    data: np.ndarray([]) = None
+    is_perturbation: bool = False
+    
+    def __post_init__(self):
+        assert self.randomization_space > 0, "randomization_space must be larger than 0."
+        assert type(self.randomization_space) is int, "randomization_space must be an int."
+        assert self.data.shape[-1] == self.randomization_space, "The last dimension of the data must be equal to the randomization space."
+
+@dataclasses.dataclass
+class Perturbated_Parser_T(Parser_T):
+    is_perturbation: bool = True
+    mean: tuple = ()
+    std: tuple = ()
+    seed: int = -1
+    
+    def __post_init__(self):
+        super().__post_init__()
+        assert type(self.mean) is tuple, "mean must be a tuple."
+        assert type(self.std) is tuple, "std must be a tuple."
 
 ##################################
 #                                #

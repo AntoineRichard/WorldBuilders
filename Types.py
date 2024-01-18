@@ -397,6 +397,16 @@ class UniformSampler_T(Sampler_T):
         assert type(self.max) is tuple, "max must be a tuple."
 
 @dataclasses.dataclass
+class UniformClipMapSampler_T(Sampler_T):
+    min: tuple = ()
+    max: tuple = ()
+
+    def __post_init__(self):
+        super().__post_init__()
+        assert type(self.min) is tuple, "min must be a tuple."
+        assert type(self.max) is tuple, "max must be a tuple."
+
+@dataclasses.dataclass
 class HardCoreUniformSampler_T(PointProcess_T):
     min: tuple = ()
     max: tuple = ()

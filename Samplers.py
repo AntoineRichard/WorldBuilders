@@ -147,6 +147,46 @@ class HardCoreUniformSampler(BaseSampler):
         boole_keep = self.hardCoreRejection(points)
         points = points[boole_keep][:num]
         return points
+    
+class UniformClipMapSampler(BaseSampler):
+    # Uniformly samples points.
+    """
+    Returns points in clipmap origin
+    """
+    def __init__(self, sampler_cfg: UniformClipMapSampler_T):
+        super().__init__(sampler_cfg)
+
+    def sample(self, num=1, **kwargs):
+        points = np.stack([self._rng.uniform(self._sampler_cfg.min[dim], self._sampler_cfg.max[dim], (num)) for dim in range(self._sampler_cfg.randomization_space)]).T
+        correct = self._check_fn(points)
+        return points[correct]
+    
+    def sample_equation_based_rejection(self, num=1, **kwargs):
+        points = []
+        counter = 0
+        num_points = 0
+        while ((num_points < num) and self._sampler_cfg.max_rejection_sampling_loop > counter):
+            pts = self.sample(num)
+            correct = self._check_fn(pts)
+            if np.sum(correct) > 0:
+                num_points += np.sum(correct)
+                points.append(pts[correct])
+            counter += 1
+        points = np.concatenate(points)[:num]
+        return np.array(points)
+    
+    def sample_image(self, num=1, **kwargs):
+        idx = self._rng.choice(self.idx, p = self.p, size=num)
+        local = self._rng.uniform(0, self.mpp, size=(num,self._sampler_cfg.randomization_space))
+        if self._sampler_cfg.randomization_space == 2:
+            y = (self.H - idx // self.mask.shape[1]) - (self.mask.shape[1]//2)
+            x = (idx % self.mask.shape[1]) - (self.mask.shape[1]//2)
+            return np.stack([x,y]).T*self.mpp + local
+        if self._sampler_cfg.randomization_space == 3:
+            x = (idx // self.mask.shape[2] // self.mask.shape[1]) - (self.mask.shape[1]//2)
+            y = (idx // self.mask.shape[2] % self.mask[1])- (self.mask.shape[1]//2)
+            z = idx % self.mask.shape[2] % self.mask.shape[1]
+            return np.stack([x,y,z]).T*self.mpp + local
 
 
 class NormalSampler(BaseSampler):
@@ -816,6 +856,7 @@ class SamplerFactory:
 Sampler_Factory = SamplerFactory()
 Sampler_Factory.register("UniformSampler_T", UniformSampler)
 Sampler_Factory.register("HardCoreUniformSampler_T", HardCoreUniformSampler)
+Sampler_Factory.register("UniformClipMapSampler_T", UniformClipMapSampler)
 Sampler_Factory.register("NormalSampler_T", NormalSampler)
 Sampler_Factory.register("MaternClusterPointSampler_T", MaternClusterPointSampler)
 Sampler_Factory.register("HardCoreMaternClusterPointSampler_T", HardCoreMaternClusterPointSampler)

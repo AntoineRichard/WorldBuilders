@@ -66,6 +66,9 @@ class RequestMixer:
                 if isinstance(req.sampler, ImageClipper_T):
                     # raise flag when image clipper is processed
                     self.height_clip_id = i
+                if isinstance(req.sampler, ClipMapClipper_T):
+                    # raise flag when image clipper is processed
+                    self.height_clip_id = i
                 if isinstance(req.sampler, NormalMapClipper_T):
                     # raise flag when normalmap clipper is processed
                     self.orient_clip_id = i

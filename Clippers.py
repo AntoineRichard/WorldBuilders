@@ -80,6 +80,118 @@ class NormalMapClipper(BaseClipper):
 
         return np.stack(quat)
 
+class ClipMapClipper(BaseClipper):
+    def __init__(self, sampler_cfg: Sampler_T):
+        """
+        cfg
+        {
+        "numMeshLODLevels": 5,
+        "meshBaseLODExtentHeightfield": 256
+        }
+        """
+        super().__init__(sampler_cfg)
+        # TODO: include these params in type class
+        cfg = {"numMeshLODLevels": 5, "meshBaseLODExtentHeightfield": 256}
+        ###########################################
+        self.L = cfg["numMeshLODLevels"]
+        self.meshBaseLODExtentHeightfield = cfg["meshBaseLODExtentHeightfield"]
+        self.leveled_dems = dict()
+        self.buildClipmap()
+    
+    @staticmethod
+    def _linear_interpolation(
+        dx: np.ndarray,
+        dy: np.ndarray,
+        q11: np.ndarray,
+        q12: np.ndarray,
+        q21: np.ndarray,
+        q22: np.ndarray,
+    ):
+        return (1-dy)*((1-dx)*q11+dx*q21)+dy*((1-dx)*q12+dx*q22)
+
+    def buildClipmap(self):
+        level = 0
+        pad = 0
+        g = int(self.meshBaseLODExtentHeightfield / 2)
+
+        for level in range(self.L):
+            stride = 2 ** level
+            radius = int(stride * (g+pad))
+
+            leveled_dem = np.empty((2*radius, 2*radius))
+            for y in range(-radius, radius, stride):
+                for x in range(-radius, radius, stride):
+                    # map discrete cartesian to pixel coordinate
+                    u = x + radius 
+                    v = y + radius
+                    leveled_dem[u, v] = self.image[u, v]
+            self.leveled_dems[level] = leveled_dem
+    
+  
+    def sample(self, query_point:np.ndarray):
+        """
+        query point is (x, y) point generated from 2D sampler. 
+        Note that in clipmap, world origin is not aligned with pixel origin.
+        """
+        g = int(self.meshBaseLODExtentHeightfield / 2)
+        points = []
+        qx = query_point[:, 0]
+        qy = query_point[:, 1]
+        mpp_level = self.mpp_resolution
+        for point_x, point_y in zip(qx, qy):
+            # determine, for each sampled points, which level of clipmap to use
+            boundary = np.maximum(np.abs(point_x/self.mpp_resolution), np.abs(point_y/self.mpp_resolution))
+            if int(boundary/g) <= 0:
+                level = 0
+            elif 0 < int(boundary/g) <= 2:
+                level = 1
+            elif 2 < int(boundary/g) <= 4:
+                level = 2
+            elif 4 < int(boundary/g) <= 8:
+                level = 3
+            elif 8 < int(boundary/g) <= 16:
+                level = 4
+            else:
+                raise ValueError("level is out of range")
+            radius = int(2**level * g)
+            dem = self.leveled_dems[level]
+            mpp_level = self.mpp_resolution * (2**level)
+
+            # map cartesian value (in meter) to pixel value(but float value)
+            x = (point_x + radius)/mpp_level
+            y = (point_y + radius)/mpp_level
+
+            # sampled discrete points should not be bigger than image boundary
+            # which is 0<=x<=W-1, 0<=y<=H-1
+            x = np.minimum(x, self.resolution[1] - 1)
+            y = np.minimum(y, self.resolution[0] - 1)
+            x = np.maximum(x, 0)
+            y = np.maximum(y, 0)
+
+            ########################
+            # (x1, y2) ---- (x2, y1)
+            #   |              |
+            #   |     (x, y)   |
+            #   |              |
+            # (x1, y2) ---- (x2, y2)
+            ########################
+            x1 = np.trunc(x).astype(int)
+            y1 = np.trunc(y).astype(int)
+            x2 = np.minimum(x1 + 1, self.resolution[1] - 1)
+            y2 = np.minimum(y1 + 1, self.resolution[0] - 1)
+
+            # bilinear interpolation
+            dx = x - x1
+            dy = y - y1
+            q11 = dem[y1, x1]
+            q12 = dem[y1, x2]
+            q21 = dem[y2, x1]
+            q22 = dem[y2, x2]
+            z = self._linear_interpolation(dx, dy, q11, q12, q21, q22)
+            points.append(np.array([point_x, point_y, z]))
+        return np.stack(points)
+
+
 class ClipperFactory:
     def __init__(self):
         self.creators = {}
@@ -95,3 +207,4 @@ class ClipperFactory:
 Clipper_Factory = ClipperFactory()
 Clipper_Factory.register("ImageClipper_T", HeightClipper)
 Clipper_Factory.register("NormalMapClipper_T", NormalMapClipper)
+Clipper_Factory.register("ClipMapClipper_T", ClipMapClipper)

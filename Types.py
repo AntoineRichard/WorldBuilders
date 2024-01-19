@@ -513,6 +513,13 @@ class LinearInterpolationSampler_T(Sampler_T):
         assert type(self.max) is tuple, "max must be a tuple."
 
 @dataclasses.dataclass
+class DeterministicSampler_T(Sampler_T):
+    """
+    data_path: pre-defined data points (i.e. deterministic sampling)
+    """
+    data_path:str = None
+
+@dataclasses.dataclass
 class Clipper_T:
     randomization_space: int = 0
     use_rejection_sampling: bool = False

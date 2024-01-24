@@ -84,6 +84,7 @@ class NormalMapClipper(BaseClipper):
 class ClipMapClipper(BaseClipper):
     def __init__(self, sampler_cfg: Sampler_T):
         super().__init__(sampler_cfg)
+        self.image = np.flipud(self.image)
     
     @staticmethod
     def _linear_interpolation(
@@ -131,10 +132,15 @@ class ClipMapClipper(BaseClipper):
             dx = x - x1
             dy = y - y1
 
-            q11 = self.image[x1, y1]
-            q12 = self.image[x1, y2]
-            q21 = self.image[x2, y1]
-            q22 = self.image[x2, y2]
+            # q11 = self.image[x1, y1]
+            # q12 = self.image[x1, y2]
+            # q21 = self.image[x2, y1]
+            # q22 = self.image[x2, y2]
+
+            q11 = self.image[y1, x1]
+            q12 = self.image[y2, x1]
+            q21 = self.image[y1, x2]
+            q22 = self.image[y2, x2]
 
             z = self._linear_interpolation(dx, dy, q11, q12, q21, q22)
             points.append(z)

@@ -851,8 +851,8 @@ class DeterministicSampler(BaseSampler):
         assert self.data.shape[-1] == self._sampler_cfg.randomization_space, f"point's dimension does not match with {self._sampler_cfg.randomization_space}"
         self.data = self.data.reshape(-1, self._sampler_cfg.randomization_space)
     def sample(self, num=1, **kwargs):
-        correct = self._check_fn(self.data)
-        return self.data[correct]
+        assert num <= self.data.shape[0], f"Sampler number should be smaller than {self.data.shape[0]}"
+        return self.data[:num, :]
 
 class SamplerFactory:
     def __init__(self):

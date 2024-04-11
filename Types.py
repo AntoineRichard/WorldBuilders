@@ -503,6 +503,13 @@ class LinearInterpolationSampler_T(Sampler_T):
         assert type(self.max) is tuple, "max must be a tuple."
 
 @dataclasses.dataclass
+class DeterministicSampler_T(Sampler_T):
+    """
+    data_path: pre-defined data points (i.e. deterministic sampling)
+    """
+    data_path:str = None
+
+@dataclasses.dataclass
 class Clipper_T:
     randomization_space: int = 0
     use_rejection_sampling: bool = False
@@ -510,10 +517,12 @@ class Clipper_T:
     seed: int = -1
     max_rejection_sampling_loop: int = 5
     is_point_process = False
+    loc_origin: str = "lower"
 
     def __post_init__(self):
         assert self.randomization_space > 0, "randomization_space must be larger than 0."
         assert type(self.randomization_space) is int, "randomization_space must be an int."
+        assert self.loc_origin in ["lower", "upper", "center"], "origin must be either 'lower', 'upper', or 'center'."
 
 @dataclasses.dataclass
 class ImageClipper_T(Clipper_T):

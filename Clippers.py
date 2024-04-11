@@ -2,17 +2,12 @@ import numpy as np
 import quaternion
 from .Types import *
 
-# I was in troublem deciding whether I should inherit BaseSampler or create new class and inherit it. 
-# Since Z-value clip function is deterministic, meaning z value is always determined based on heightmap. 
-# There is no point in creating random distribution as done in BaseSampler and other inheriting class. 
-# Thus, I made BaseClipper method and new class called HeightClipper and NormalMapClippter which inherit BaseClipper. 
-
 class BaseClipper:
-    def __init__(self, sampler_cfg: Sampler_T):
-        self._sampler_cfg = sampler_cfg
-        self.image = self._sampler_cfg.data
-        self.resolution = self._sampler_cfg.resolution
-        self.mpp_resolution = self._sampler_cfg.mpp_resolution
+    def __init__(self, clipper_cfg: Clipper_T):
+        self._clipper_cfg = clipper_cfg
+        self.image = self._clipper_cfg.data
+        self.resolution = self._clipper_cfg.resolution
+        self.mpp_resolution = self._clipper_cfg.mpp_resolution
 
         assert len(self.image.shape) == 2, f"image need to be 1 channel image, not {self.image.shape}"
     
@@ -23,52 +18,63 @@ class BaseClipper:
         raise NotImplementedError()
 
 class HeightClipper(BaseClipper):
-    def __init__(self, sampler_cfg: Sampler_T):
-        super().__init__(sampler_cfg)
+    def __init__(self, clipper_cfg: Clipper_T):
+        super().__init__(clipper_cfg)
 
     def sample(self, query_point:np.ndarray, **kwargs):
         """
         query point is (x, y) point generated from 2D sampler. 
         """
+        height = []
         x = query_point[:, 0]
         y = query_point[:, 1]
         H, W = self.resolution
-        # from xy to uv coordinate
-        us = x // self.mpp_resolution #horizontal
-        vs = H * np.ones_like(y) - y // self.mpp_resolution #vertical
-        images = []
+        # from xy (cartesian) to uv coordinate
+        if self._clipper_cfg.loc_origin == "lower":
+            us = x // self.mpp_resolution #horizontal
+            vs = H * np.ones_like(y) - y // self.mpp_resolution #vertical
+        elif self._clipper_cfg.loc_origin == "upper":
+            us = x // self.mpp_resolution
+            vs = y // self.mpp_resolution
+        elif self._clipper_cfg.loc_origin == "center":
+            us = W //2 + x // self.mpp_resolution
+            vs = H//2 - y // self.mpp_resolution
         for u, v in zip(us, vs):
             u = int(u)
             v = int(v)
-            images.append(self.image[v, u])
-        return np.stack(images)[:, np.newaxis]
+            height.append(self.image[v, u])
+        return np.stack(height)[:, np.newaxis]
 
 class NormalMapClipper(BaseClipper):
-    def __init__(self, sampler_cfg: Sampler_T):
-        super().__init__(sampler_cfg)
+    def __init__(self, clipper_cfg: Clipper_T):
+        super().__init__(clipper_cfg)
+        self.compute_slopes()
 
     def compute_slopes(self)->None:
         nx,ny = np.gradient(self.image)
         slope_x = np.arctan2(nx,1) #theta_x = tan^-1(nx)
         slope_y = np.arctan2(ny,1) #theta_y = tan^-1(ny)
-        # magnitude = np.hypot(nx,ny)
-        # slope_xy = np.arctan2(magnitude,1)
         self.slope_x = np.rad2deg(slope_x)
         self.slope_y = np.rad2deg(slope_y)
-        # self.slope_xy = np.rad2deg(slope_xy)
-        # self.magnitude = magnitude
 
     def sample(self, query_point:np.ndarray, **kwargs):
         """
         query point is (x, y) point generated from sampler
         """
-        self.compute_slopes()
+        quat = []
         x = query_point[:, 0]
         y = query_point[:, 1]
         H, W = self.resolution
-        us = x // self.mpp_resolution #horizontal
-        vs = H * np.ones_like(y) - y // self.mpp_resolution #vertical
-        quat = []
+        # from xy (cartesian) to uv coordinate
+        if self._clipper_cfg.loc_origin == "lower":
+            us = x // self.mpp_resolution #horizontal
+            vs = H * np.ones_like(y) - y // self.mpp_resolution #vertical
+        elif self._clipper_cfg.loc_origin == "upper":
+            us = x // self.mpp_resolution
+            vs = y // self.mpp_resolution
+        elif self._clipper_cfg.loc_origin == "center":
+            us = W //2 + x // self.mpp_resolution
+            vs = H//2 - y // self.mpp_resolution
         for u, v in zip(us, vs):
             u = int(u)
             v = int(v)

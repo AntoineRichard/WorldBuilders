@@ -801,6 +801,19 @@ class LinearInterpolationSampler(BaseSampler):
             z = idx % self.mask.shape[2] % self.mask.shape[1]
             return np.stack([x,y,z]).T + local
 
+class DeterministicSampler(BaseSampler):
+    def __init__(self, sampler_cfg: DeterministicSampler_T):
+        super().__init__(sampler_cfg)
+        self.load_data()
+    def load_data(self):
+        self.data = np.load(self._sampler_cfg.data_path)
+        assert len(self.data.shape) == 2, f"Wrong dimension: {self.data.shape}"
+        assert self.data.shape[-1] == self._sampler_cfg.randomization_space, f"point's dimension does not match with {self._sampler_cfg.randomization_space}"
+        self.data = self.data.reshape(-1, self._sampler_cfg.randomization_space)
+    def sample(self, num=1, **kwargs):
+        assert num <= self.data.shape[0], f"Sampler number should be smaller than {self.data.shape[0]}"
+        return self.data[:num, :]
+
 class SamplerFactory:
     def __init__(self):
         self.creators = {}
@@ -824,3 +837,4 @@ Sampler_Factory.register("HardCoreThomasClusterSampler_T", HardCoreThomasCluster
 Sampler_Factory.register("HardCoreThomasClusterSampler_T", HardCoreThomasClusterSampler)
 Sampler_Factory.register("PoissonPointSampler_T", PoissonPointSampler)
 Sampler_Factory.register("LinearInterpolationSampler_T", LinearInterpolationSampler)
+Sampler_Factory.register("DeterministicSampler_T", DeterministicSampler)

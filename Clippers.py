@@ -38,7 +38,7 @@ class HeightClipper(BaseClipper):
             vs = y // self.mpp_resolution
         elif self._clipper_cfg.loc_origin == "center":
             us = W //2 + x // self.mpp_resolution
-            vs = H//2 - y // self.mpp_resolution
+            vs = H//2 + y // self.mpp_resolution
         for u, v in zip(us, vs):
             u = int(u)
             v = int(v)
@@ -74,7 +74,7 @@ class NormalMapClipper(BaseClipper):
             vs = y // self.mpp_resolution
         elif self._clipper_cfg.loc_origin == "center":
             us = W //2 + x // self.mpp_resolution
-            vs = H//2 - y // self.mpp_resolution
+            vs = H//2 + y // self.mpp_resolution
         for u, v in zip(us, vs):
             u = int(u)
             v = int(v)
@@ -85,6 +85,66 @@ class NormalMapClipper(BaseClipper):
             quat.append(q)
 
         return np.stack(quat)
+
+class GeoclipmapClipper(BaseClipper):
+    def __init__(self, clipper_cfg: Clipper_T):
+        super().__init__(clipper_cfg)
+        self.image = np.flipud(self.image)
+    
+    @staticmethod
+    def _linear_interpolation(
+        dx: np.ndarray,
+        dy: np.ndarray,
+        q11: np.ndarray,
+        q12: np.ndarray,
+        q21: np.ndarray,
+        q22: np.ndarray,
+    ):
+        return (1-dy)*((1-dx)*q11+dx*q21)+dy*((1-dx)*q12+dx*q22)
+  
+    def sample(self, query_point:np.ndarray, **kwargs):
+        """
+        query point is (x, y) point generated from 2D sampler. 
+        query point is relative to bottom left corner.
+        Note that in clipmap, world origin is not aligned with pixel origin.
+        Therefore, need to add offset to query_point
+        """
+        points = []
+        qx = query_point[:, 0]
+        qy = query_point[:, 1]
+        for point_x, point_y in zip(qx, qy):
+            x = point_x/self.mpp_resolution + self.resolution[1]//2
+            y = point_y/self.mpp_resolution + self.resolution[0]//2
+
+            # sampled discrete points should not be bigger than image boundary
+            # which is 0<=x<=W-1, 0<=y<=H-1
+            x = np.minimum(x, self.resolution[1] - 1)
+            y = np.minimum(y, self.resolution[0] - 1)
+            x = np.maximum(x, 0)
+            y = np.maximum(y, 0)
+
+            ########################
+            # (x1, y2) ---- (x2, y1)
+            #   |              |
+            #   |     (x, y)   |
+            #   |              |
+            # (x1, y2) ---- (x2, y2)
+            ########################
+            x1 = np.trunc(x).astype(int)
+            y1 = np.trunc(y).astype(int)
+            x2 = np.minimum(x1 + 1, self.resolution[1] - 1)
+            y2 = np.minimum(y1 + 1, self.resolution[0] - 1)
+            dx = x - x1
+            dy = y - y1
+
+            q11 = self.image[y1, x1]
+            q12 = self.image[y2, x1]
+            q21 = self.image[y1, x2]
+            q22 = self.image[y2, x2]
+
+            z = self._linear_interpolation(dx, dy, q11, q12, q21, q22)
+            points.append(z)
+        return np.stack(points)[:, np.newaxis]
 
 class ClipperFactory:
     def __init__(self):
@@ -101,3 +161,4 @@ class ClipperFactory:
 Clipper_Factory = ClipperFactory()
 Clipper_Factory.register("ImageClipper_T", HeightClipper)
 Clipper_Factory.register("NormalMapClipper_T", NormalMapClipper)
+Clipper_Factory.register("GeoclipmapClipper_T", GeoclipmapClipper)

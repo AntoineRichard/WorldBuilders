@@ -531,6 +531,7 @@ class ImageClipper_T(Clipper_T):
     mpp_resolutin : meter per pixel resolution
     data : Image in numpy ndarray
     """
+    resolution: tuple = (1, 1)
     mpp_resolution: float = 1.0
     data: np.ndarray([]) = None
 
@@ -541,6 +542,7 @@ class NormalMapClipper_T(Clipper_T):
     mpp_resolutin : meter per pixel resolution
     data : Gradient map in numpy ndarray
     """
+    resolution: tuple = (1, 1)
     mpp_resolution: float = 1.0
     data: np.ndarray([]) = None
 

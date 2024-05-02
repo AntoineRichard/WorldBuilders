@@ -546,17 +546,6 @@ class NormalMapClipper_T(Clipper_T):
     mpp_resolution: float = 1.0
     data: np.ndarray([]) = None
 
-@dataclasses.dataclass
-class GeoclipmapClipper_T(Clipper_T):
-    """
-    resolution : pixel resolution
-    mpp_resolutin : meter per pixel resolution
-    data : Height map in numpy ndarray
-    """
-    resolution: tuple = (1, 1)
-    mpp_resolution: float = 1.0
-    data: np.ndarray([]) = None
-
 ##################################
 #                                #
 #           PARAMETERS           # 

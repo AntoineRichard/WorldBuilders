@@ -32,7 +32,7 @@ class HeightClipper(BaseClipper):
         # from xy (cartesian) to uv coordinate
         if self._clipper_cfg.loc_origin == "lower":
             us = x // self.mpp_resolution #horizontal
-            vs = H * np.ones_like(y) - y // self.mpp_resolution #vertical
+            vs = (H - 1) * np.ones_like(y) - y // self.mpp_resolution #vertical
         elif self._clipper_cfg.loc_origin == "upper":
             us = x // self.mpp_resolution
             vs = y // self.mpp_resolution

@@ -365,10 +365,10 @@ def createInstancerFromCache(stage: Usd.Stage,
 
 def setInstancerParameters(stage: Usd.Stage,
                            path: str,
-                           pos: np.ndarray([],dtype=np.float),
+                           pos: np.ndarray([],dtype=float),
                            ids: np.ndarray([],dtype=int) = None,
-                           scale: np.ndarray([],dtype=np.float) = None,
-                           quat: np.ndarray([],dtype=np.float) = None,
+                           scale: np.ndarray([],dtype=float) = None,
+                           quat: np.ndarray([],dtype=float) = None,
                            ) -> None:
     """
     Sets the parameters of an instancer.

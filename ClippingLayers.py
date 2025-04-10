@@ -16,11 +16,11 @@ class BaseClippingLayer:
     def initializeClipper(self) -> None:
         self._sampler = Clipper_Factory.get(self._sampler_cfg)
 
-    def sample(self, num: int = 1):
+    def sample(self, num: int = 1, **kwargs):
         raise NotImplementedError()
 
-    def __call__(self, num: int = 1) -> np.ndarray([]):
-        points = self.sample(num = num)
+    def __call__(self, num: int = 1, **kwargs) -> np.ndarray([]):
+        points = self.sample(num = num, **kwargs)
         return points
 
 class ClippingLayer1D(BaseClippingLayer):
@@ -41,11 +41,11 @@ class ClippingImageLayer(ClippingLayer1D):
         super().__init__(layer_cfg, sampler_cfg)
         self.initializeClipper()
 
-    def sample(self, query_point: np.ndarray, num: int = 1):
-        return self._sampler(num=num, query_point=query_point)
+    def sample(self, query_point: np.ndarray, num: int = 1, **kwargs):
+        return self._sampler(num=num, query_point=query_point, **kwargs)
     
-    def __call__(self, query_point: np.ndarray, num: int = 1) -> np.ndarray([]):
-        points = self.sample(num = num, query_point=query_point)
+    def __call__(self, query_point: np.ndarray, num: int = 1, **kwargs) -> np.ndarray([]):
+        points = self.sample(num = num, query_point=query_point, **kwargs)
         return points
 
 class ClippingNormalMapLayer(ClippingLayer4D):
@@ -53,11 +53,11 @@ class ClippingNormalMapLayer(ClippingLayer4D):
         super().__init__(layer_cfg, sampler_cfg)
         self.initializeClipper()
 
-    def sample(self, query_point: np.ndarray, num: int = 1):
-        return self._sampler(num=num, query_point=query_point)
+    def sample(self, query_point: np.ndarray, num: int = 1, **kwargs):
+        return self._sampler(num=num, query_point=query_point, **kwargs)
     
-    def __call__(self, query_point: np.ndarray, num: int = 1) -> np.ndarray([]):
-        points = self.sample(num = num, query_point=query_point)
+    def __call__(self, query_point: np.ndarray, num: int = 1, **kwargs) -> np.ndarray([]):
+        points = self.sample(num = num, query_point=query_point, **kwargs)
         return points
 
 class ClippingLayerFactory:

@@ -125,7 +125,7 @@ class RequestMixer:
                     to_exec["axes"].append([0])
             self.execution_graph[attribute_name] = to_exec
 
-    def executeGraph(self, num=1, parents=[]):
+    def executeGraph(self, num=1, parents=[], **kwargs):
         output = {}
         attributes = self.execution_graph
         # Grab the point process first as it determines the number of elements to sample for
@@ -147,22 +147,22 @@ class RequestMixer:
                     assert points is not None, "height clip must be called after sampling x, y position"
                     assert points.shape[-1] == 2, "2 dimensional vector is only allowed as an query point"
                     query_points = copy.deepcopy(points) #store sampled x, y 
-                    points = to_exec["meta_layer"][j](query_point=query_points, num=num) #"sample" method of image clipper is called here.
+                    points = to_exec["meta_layer"][j](query_point=query_points, num=num, **kwargs) #"sample" method of image clipper is called here.
                     points = np.stack([points[:,i] for i in to_exec["replicate"][j]]).T
                     current_order += to_exec["order"][j]
                     p_list.append(points)
                 elif attribute == "xformOp:orientation" and j == self.orient_clip_id:
                     assert query_points is not None, "orientation clip must be called after sampling x, y position"
                     assert query_points.shape[-1] == 2, "2 dimensional vector is only allowed as an query point"
-                    points = to_exec["meta_layer"][j](query_point=query_points, num=num) #"sample" method of normalmap clipper is called here.
+                    points = to_exec["meta_layer"][j](query_point=query_points, num=num, **kwargs) #"sample" method of normalmap clipper is called here.
                     points = np.stack([points[:,i] for i in to_exec["replicate"][j]]).T
                     current_order += to_exec["order"][j]
                     p_list.append(points)
                 else:
                     if self.has_point_process and is_first and self.point_process_inherits_parents:
-                        points = to_exec["meta_layer"][j](num, parents=parents) #"sample" method of sampler is called here.
+                        points = to_exec["meta_layer"][j](num, parents=parents, **kwargs) #"sample" method of sampler is called here.
                     else:
-                        points = to_exec["meta_layer"][j](num) #"sample" method of sampler is called here.
+                        points = to_exec["meta_layer"][j](num, **kwargs) #"sample" method of sampler is called here.
                     points = np.stack([points[:,i] for i in to_exec["replicate"][j]]).T
                     current_order += to_exec["order"][j]
                     p_list.append(points)

@@ -514,7 +514,7 @@ class ThomasClusterSampler(BaseSampler):
             coords.append(bounds_ext[i,0] + (bounds_ext[i,1] - bounds_ext[i,0]) * self._rng.uniform(0, 1, num_points_parent))
         return np.stack(coords).T
     
-    def getParentsImage(self, bounds, area=None): 
+    def getParentsImage(self, bounds, area=None, **kwargs): 
         if self._sampler_cfg.warp is not None:
             bounds_ext = (np.array(bounds).T*np.array(self._sampler_cfg.warp)).T
         else:
@@ -524,7 +524,8 @@ class ThomasClusterSampler(BaseSampler):
         bounds_ext[:,1] += self._sampler_cfg.sigma*6
         if area is None:
             area_ext = np.prod(bounds_ext[:,1] - bounds_ext[:,0])
-            area_ext = area_ext * np.sum(self.mask) / self.mask.flatten().shape[0] 
+            if kwargs["use_mask_area"]:
+                area_ext = area_ext * np.sum(self.mask) / self.mask.flatten().shape[0] 
         else:
             area_ext = area
         
@@ -612,7 +613,7 @@ class ThomasClusterSampler(BaseSampler):
         if self._sampler_cfg.inherit_parents and len(parents):
             self.parents_coords = parents
         else:
-            self.parents_coords = self.getParentsImage(bounds, area=area)
+            self.parents_coords = self.getParentsImage(bounds, area=area, **kwargs)
         points = self.getDaughtersImage(self.parents_coords, bounds)
         return points
 

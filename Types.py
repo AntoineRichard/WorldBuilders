@@ -55,8 +55,8 @@ class Transformation_T:
 
 @dataclasses.dataclass
 class Transformation2D_T(Transformation_T):
-    orientation: Rot2D_T = Rot2D_T()
-    translation: Translation2D_T = Translation2D_T()
+    orientation: Rot2D_T = dataclasses.field(default_factory=Rot2D_T)
+    translation: Translation2D_T = dataclasses.field(default_factory=Translation2D_T)
 
     def __post_init__(self):
         assert isinstance(self.orientation, Rot2D_T), "A 2D transform requires a 2D rotation."
@@ -64,8 +64,8 @@ class Transformation2D_T(Transformation_T):
 
 @dataclasses.dataclass
 class Transformation3D_T(Transformation_T):
-    orientation: Orientation_T = Quaternion_T()
-    translation: Translation3D_T = Translation3D_T()
+    orientation: Orientation_T = dataclasses.field(default_factory=Quaternion_T)
+    translation: Translation3D_T = dataclasses.field(default_factory=Translation3D_T)
 
     def __post_init__(self):
         assert isinstance(self.orientation, Rot3D_T), "A 3D transform requires a 3D orientation."
@@ -600,7 +600,7 @@ class Orientation_T(Parameter_T):
 
 @dataclasses.dataclass
 class UserRequest_T:
-    p_type: Parameter_T = Parameter_T()
+    p_type: Parameter_T = dataclasses.field(default_factory=Parameter_T)
     sampler: Sampler_T = None
     layer: Layer_T = None
     axes: list = None

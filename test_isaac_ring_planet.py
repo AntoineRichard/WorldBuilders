@@ -1,15 +1,15 @@
-from omni.isaac.kit import SimulationApp
+from isaacsim.simulation_app import SimulationApp
 import numpy as np
 import os
 
 simulation_app = SimulationApp({"headless": False})
 
-from omni.isaac.core import World
+from isaacsim.core.api import World
 from pxr_utils import createInstancerAndCache, setInstancerParameters, setRotateXYZ
 from .Mixer import *
 import omni
 from pxr import UsdGeom, Sdf, UsdLux, Gf, UsdShade
-from omni.isaac.core.materials import PreviewSurface
+from isaacsim.core.api.materials import PreviewSurface
 
 my_world = World(stage_units_in_meters=1.0)
 stage = omni.usd.get_context().get_stage()

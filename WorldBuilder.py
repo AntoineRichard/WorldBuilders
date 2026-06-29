@@ -1,8 +1,6 @@
-from abc import ABC
-
-#class BaseWorld:
+# class BaseWorld:
 #    def __init__(self, config):
-#    
+#
 #    def load():
 #        return None
 #
@@ -10,7 +8,7 @@ from abc import ABC
 #        return None
 
 
-#class SolidGroundEnvironment:
+# class SolidGroundEnvironment:
 #    def __init__(self, config):
 
 
@@ -29,74 +27,96 @@ from abc import ABC
 # Then, when called, it can trigger the proper actions. Randomize or apply the commands through the requested interfaces.
 # I feel like we are going to need an interface object.
 
+
 # This is the chief! The master organizer? It looks a lot like an object though...
 class World:
     def __init__(self, cfg):
         pass
+
     def load():
         pass
+
     def parse_configuration():
         pass
+
     def reset():
         pass
+
     def randomize():
         pass
+
 
 # This stuff is an object it contains stuff.
 class BaseObject:
     def __init__(self, cfg):
         self.cfg = cfg
+
     def parse_configuration():
-        pass        
+        pass
+
     def load():
         pass
+
     def reset():
         pass
+
     def randomize():
         pass
+
     def exposeInterfaces():
         pass
+
 
 class SingleAsset(BaseObject):
     pass
 
+
 class MultiAsset(SingleAsset):
     pass
+
 
 class Instancer(BaseObject):
     pass
 
+
 class BaseLight(BaseObject):
     pass
+
 
 class GlobalLight(BaseLight):
     pass
 
+
 class DomeLight(BaseLight):
     pass
+
 
 class Skybox(BaseObject):
     pass
 
 
 # This stuff randomizes shit given a set of constraints
-class BaseRandomizer: # Must be able to randomize in 2D and 3D
+class BaseRandomizer:  # Must be able to randomize in 2D and 3D
     pass
+
 
 class UniformRandomizer:
     # Uniformly samples points in a Layer defined space.
     pass
 
+
 class NormalRandomizer:
     # Samples points in a Layer defined space using a Normal distribution.
     pass
+
 
 class PoissonClusterPointProcess:
     # Samples points in a layer defined space using a Poisson cluser point process.
     pass
 
+
 class MaternClusterPointRandomizer:
-    # Samples points in a layer defined space using a Matern cluser point process. 
+    # Samples points in a layer defined space using a Matern cluser point process.
     pass
 
 
@@ -104,24 +124,27 @@ class MaternClusterPointRandomizer:
 class BaseLayer:
     pass
 
-class VolumeLayer(BaseLayer): # Cube/Rectangle or Sphere/3DElipsoid
+
+class VolumeLayer(BaseLayer):  # Cube/Rectangle or Sphere/3DElipsoid
     # Defines a 3D space.
     pass
 
-class PlaneLayer(BaseLayer): # Square/Rectangle, circle/elipse or Polygon.
+
+class PlaneLayer(BaseLayer):  # Square/Rectangle, circle/elipse or Polygon.
     # Defines a 2D space.
     pass
 
-class SemanticLayer(BaseLayer): # Square/Rectangle
+
+class SemanticLayer(BaseLayer):  # Square/Rectangle
     # Defines a 2D map with semantic information.
     pass
 
-class NormalLayer(BaseLayer): # Square/Rectangle
+
+class NormalLayer(BaseLayer):  # Square/Rectangle
     # Defines a 2D map with normal information.
     pass
 
-class FloatLayer(BaseLayer): # Square/Rectangle
+
+class FloatLayer(BaseLayer):  # Square/Rectangle
     # Defines a 2D map with Floating values information.
     pass
-
-

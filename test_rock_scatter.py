@@ -1,12 +1,12 @@
-from omni.isaac.kit import SimulationApp
+from isaacsim.simulation_app import SimulationApp
 import numpy as np
 import os
 from glob import glob
 
 simulation_app = SimulationApp({"headless": False})
 import omni
-from omni.isaac.core import World, PhysicsContext
-from omni.isaac.core.utils.semantics import add_update_semantics
+from isaacsim.core.api import World, PhysicsContext
+from isaacsim.core.api.utils.semantics import add_update_semantics
 from pxr_utils import createInstancerAndCache, setInstancerParameters, setRotateXYZ, createObject, addCollision, loadTexture, createStandaloneInstance, createXform, setDefaultPrim, applyMaterial
 from .Mixer import *
 from .Types import *

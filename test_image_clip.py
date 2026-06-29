@@ -1,10 +1,10 @@
-from omni.isaac.kit import SimulationApp
+from isaacsim.simulation_app import SimulationApp
 import numpy as np
 import os
 
 simulation_app = SimulationApp({"headless": False})
 
-from omni.isaac.core import World
+from isaacsim.core.api import World
 from pxr_utils import createInstancerAndCache, setInstancerParameters, setRotateXYZ, createObject, addCollision, loadTexture, createStandaloneInstance, createXform, setDefaultPrim
 from .Mixer import *
 from .Types import *

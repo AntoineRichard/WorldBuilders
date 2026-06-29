@@ -1,13 +1,13 @@
 import os
 
 import numpy as np
-from omni.isaac.kit import SimulationApp
+from isaacsim.simulation_app import SimulationApp
 
 simulation_app = SimulationApp({"headless": False})
 
 import omni
-from omni.isaac.core import World
-from omni.isaac.core.materials import PreviewSurface
+from isaacsim.core.api import World
+from isaacsim.core.api.materials import PreviewSurface
 from pxr import Gf, Sdf, UsdGeom, UsdLux, UsdShade
 
 from pxr_utils import createInstancerAndCache, setInstancerParameters, setRotateXYZ

@@ -1,0 +1,10 @@
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+# Pyflakes (real bugs / dead code) + import sorting (I) + syntax errors (E9).
+select = ["F", "I", "E9"]
+# This codebase relies heavily on `from ... import *`; ignore the resulting
+# undefined-name noise rather than refactoring every module. Tracked cleanup.
+ignore = ["F403", "F405"]

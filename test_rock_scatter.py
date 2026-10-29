@@ -40,7 +40,7 @@ def assembleMap(folder, stage, terrain_root="/terrain", texture_path="../../../T
             file_path = os.path.join(folder, file)
             createObject(os.path.join(terrain_root, name), stage, file_path, Gf.Vec3d(x_coord, y_coord, 0))
     # applyMaterial(terrain, material.get_path())
-    # add_update_semantics(prim=terrain, semantic_label="terrain") #apply semantic
+    # add_labels(terrain, ["terrain"], instance_name="class")  # apply semantic (isaacsim.core.utils.semantics)
     setDefaultPrim(stage, terrain_root)
 
 

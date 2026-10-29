@@ -6,7 +6,7 @@ from glob import glob
 simulation_app = SimulationApp({"headless": False})
 import omni
 from isaacsim.core.api import World, PhysicsContext
-from isaacsim.core.api.utils.semantics import add_update_semantics
+from isaacsim.core.utils.semantics import add_labels
 from pxr_utils import createInstancerAndCache, setInstancerParameters, setRotateXYZ, createObject, addCollision, loadTexture, createStandaloneInstance, createXform, setDefaultPrim, applyMaterial
 from .Mixer import *
 from .Types import *
@@ -30,7 +30,7 @@ def assembleMap(folder, stage, terrain_root = "/terrain", texture_path="../../..
             createObject(os.path.join(terrain_root, name), stage, file_path, Gf.Vec3d(x_coord, y_coord, 0))
     terrain = stage.GetPrimAtPath(terrain_root)
     # applyMaterial(terrain, material.get_path())
-    # add_update_semantics(prim=terrain, semantic_label="terrain") #apply semantic
+    # add_labels(terrain, ["terrain"], instance_name="class") #apply semantic
     setDefaultPrim(stage, terrain_root)
 
 def processFolders(folders, stage):

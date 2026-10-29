@@ -1,15 +1,13 @@
 import numpy as np
-import dataclasses
 from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import axes3d, Axes3D
 
-from .Types import *
 from .Layers import *
 from .Samplers import *
+from .Types import *
 
 trans = Translation3D_T(z=0.25)
-quat =Quaternion_T(x=0.383,y=0.0,z=0.0,w=0.924)
-quat2 =Quaternion_T(x=0.,y=0.383,z=0.0,w=0.924)
+quat = Quaternion_T(x=0.383, y=0.0, z=0.0, w=0.924)
+quat2 = Quaternion_T(x=0.0, y=0.383, z=0.0, w=0.924)
 T = Transformation3D_T(translation=trans, orientation=quat)
 T2 = Transformation3D_T(translation=trans, orientation=quat2)
 
@@ -26,155 +24,331 @@ poi2 = PoissonPointSampler_T(randomization_space=2)
 poi3 = PoissonPointSampler_T(randomization_space=3)
 
 norm1 = NormalSampler_T(mean=(0.5,), std=(0.05,), randomization_space=1, use_rejection_sampling=True)
-norm2 = NormalSampler_T(mean=(0.5,0.5), std=(0.05, 0.1, 0.1, 0.05), randomization_space=2, use_rejection_sampling=True)
-norm3 = NormalSampler_T(mean=(0.5,0.5,0.5), std=(0.05, 0., 0., 0., 0.1, 0, 0., 0., 0.05), randomization_space=3, use_rejection_sampling=True)
+norm2 = NormalSampler_T(mean=(0.5, 0.5), std=(0.05, 0.1, 0.1, 0.05), randomization_space=2, use_rejection_sampling=True)
+norm3 = NormalSampler_T(
+    mean=(0.5, 0.5, 0.5),
+    std=(0.05, 0.0, 0.0, 0.0, 0.1, 0, 0.0, 0.0, 0.05),
+    randomization_space=3,
+    use_rejection_sampling=True,
+)
 
-norm1c = NormalSampler_T(mean=(np.pi,), std=(np.pi/8,), randomization_space=1, use_rejection_sampling=True)
-norm2c = NormalSampler_T(mean=(0.25, np.pi), std=(0.02,0,0,np.pi/8), randomization_space=2, use_rejection_sampling=True)
-norm3c = NormalSampler_T(mean=(0.25, np.pi, np.pi), std=(0.02,0,0,0,np.pi/8,0,0,0,np.pi/8), randomization_space=3, use_rejection_sampling=True)
+norm1c = NormalSampler_T(mean=(np.pi,), std=(np.pi / 8,), randomization_space=1, use_rejection_sampling=True)
+norm2c = NormalSampler_T(
+    mean=(0.25, np.pi), std=(0.02, 0, 0, np.pi / 8), randomization_space=2, use_rejection_sampling=True
+)
+norm3c = NormalSampler_T(
+    mean=(0.25, np.pi, np.pi),
+    std=(0.02, 0, 0, 0, np.pi / 8, 0, 0, 0, np.pi / 8),
+    randomization_space=3,
+    use_rejection_sampling=True,
+)
 
-norm3_cy = NormalSampler_T(mean=(0.25, 0, np.pi), std=(0.02,0,0,0,0.02,0,0,0,np.pi/8), randomization_space=3, use_rejection_sampling=True)
+norm3_cy = NormalSampler_T(
+    mean=(0.25, 0, np.pi),
+    std=(0.02, 0, 0, 0, 0.02, 0, 0, 0, np.pi / 8),
+    randomization_space=3,
+    use_rejection_sampling=True,
+)
 
-matern2 = MaternClusterPointSampler_T(lambda_parent=10, lambda_daughter=100, cluster_radius=0.1, randomization_space=2, use_rejection_sampling=False)
-matern3 = MaternClusterPointSampler_T(lambda_parent=10, lambda_daughter=100, cluster_radius=0.1, randomization_space=3, use_rejection_sampling=False)
-hcmatern2 = HardCoreMaternClusterPointSampler_T(lambda_parent=10, lambda_daughter=100, cluster_radius=0.1, randomization_space=2, use_rejection_sampling=False)
-hcmatern3 = HardCoreMaternClusterPointSampler_T(lambda_parent=10, lambda_daughter=100, cluster_radius=0.1, randomization_space=3, use_rejection_sampling=False)
+matern2 = MaternClusterPointSampler_T(
+    lambda_parent=10, lambda_daughter=100, cluster_radius=0.1, randomization_space=2, use_rejection_sampling=False
+)
+matern3 = MaternClusterPointSampler_T(
+    lambda_parent=10, lambda_daughter=100, cluster_radius=0.1, randomization_space=3, use_rejection_sampling=False
+)
+hcmatern2 = HardCoreMaternClusterPointSampler_T(
+    lambda_parent=10, lambda_daughter=100, cluster_radius=0.1, randomization_space=2, use_rejection_sampling=False
+)
+hcmatern3 = HardCoreMaternClusterPointSampler_T(
+    lambda_parent=10, lambda_daughter=100, cluster_radius=0.1, randomization_space=3, use_rejection_sampling=False
+)
 
-matern2_polar = MaternClusterPointSampler_T(lambda_parent=10, lambda_daughter=100, cluster_radius=0.1, randomization_space=2, use_rejection_sampling=False, warp=(0.1, 2*np.pi))
-matern3_polar = MaternClusterPointSampler_T(lambda_parent=10, lambda_daughter=100, cluster_radius=0.1, randomization_space=3, use_rejection_sampling=False, warp=(0.1, 2*np.pi, 2*np.pi))
-hcmatern2_polar = HardCoreMaternClusterPointSampler_T(lambda_parent=10, lambda_daughter=100, cluster_radius=0.1, randomization_space=2, use_rejection_sampling=False, warp=(0.1, 2*np.pi))
-hcmatern3_polar = HardCoreMaternClusterPointSampler_T(lambda_parent=10, lambda_daughter=100, cluster_radius=0.1, randomization_space=3, use_rejection_sampling=False, warp=(0.1, 2*np.pi, 2*np.pi))
+matern2_polar = MaternClusterPointSampler_T(
+    lambda_parent=10,
+    lambda_daughter=100,
+    cluster_radius=0.1,
+    randomization_space=2,
+    use_rejection_sampling=False,
+    warp=(0.1, 2 * np.pi),
+)
+matern3_polar = MaternClusterPointSampler_T(
+    lambda_parent=10,
+    lambda_daughter=100,
+    cluster_radius=0.1,
+    randomization_space=3,
+    use_rejection_sampling=False,
+    warp=(0.1, 2 * np.pi, 2 * np.pi),
+)
+hcmatern2_polar = HardCoreMaternClusterPointSampler_T(
+    lambda_parent=10,
+    lambda_daughter=100,
+    cluster_radius=0.1,
+    randomization_space=2,
+    use_rejection_sampling=False,
+    warp=(0.1, 2 * np.pi),
+)
+hcmatern3_polar = HardCoreMaternClusterPointSampler_T(
+    lambda_parent=10,
+    lambda_daughter=100,
+    cluster_radius=0.1,
+    randomization_space=3,
+    use_rejection_sampling=False,
+    warp=(0.1, 2 * np.pi, 2 * np.pi),
+)
 
-thomas2 = ThomasClusterSampler_T(lambda_parent=10, lambda_daughter=100, sigma=0.05, randomization_space=2, use_rejection_sampling=False)
-thomas3 = ThomasClusterSampler_T(lambda_parent=10, lambda_daughter=100, sigma=0.05, randomization_space=3, use_rejection_sampling=False)
-hcthomas2 = HardCoreThomasClusterSampler_T(lambda_parent=10, lambda_daughter=100, sigma=0.05, randomization_space=2, use_rejection_sampling=False)
-hcthomas3 = HardCoreThomasClusterSampler_T(lambda_parent=10, lambda_daughter=100, sigma=0.05, randomization_space=3, use_rejection_sampling=False)
+thomas2 = ThomasClusterSampler_T(
+    lambda_parent=10, lambda_daughter=100, sigma=0.05, randomization_space=2, use_rejection_sampling=False
+)
+thomas3 = ThomasClusterSampler_T(
+    lambda_parent=10, lambda_daughter=100, sigma=0.05, randomization_space=3, use_rejection_sampling=False
+)
+hcthomas2 = HardCoreThomasClusterSampler_T(
+    lambda_parent=10, lambda_daughter=100, sigma=0.05, randomization_space=2, use_rejection_sampling=False
+)
+hcthomas3 = HardCoreThomasClusterSampler_T(
+    lambda_parent=10, lambda_daughter=100, sigma=0.05, randomization_space=3, use_rejection_sampling=False
+)
 
-thomas2_polar = ThomasClusterSampler_T(lambda_parent=10, lambda_daughter=100, sigma=0.05, randomization_space=2, use_rejection_sampling=False, warp=(0.1, 2*np.pi))
-thomas3_polar = ThomasClusterSampler_T(lambda_parent=10, lambda_daughter=100, sigma=0.05, randomization_space=3, use_rejection_sampling=False, warp=(0.1, 2*np.pi, 2*np.pi))
+thomas2_polar = ThomasClusterSampler_T(
+    lambda_parent=10,
+    lambda_daughter=100,
+    sigma=0.05,
+    randomization_space=2,
+    use_rejection_sampling=False,
+    warp=(0.1, 2 * np.pi),
+)
+thomas3_polar = ThomasClusterSampler_T(
+    lambda_parent=10,
+    lambda_daughter=100,
+    sigma=0.05,
+    randomization_space=3,
+    use_rejection_sampling=False,
+    warp=(0.1, 2 * np.pi, 2 * np.pi),
+)
 
-matern3_cone = MaternClusterPointSampler_T(lambda_parent=60, lambda_daughter=100, cluster_radius=0.1, randomization_space=3, use_rejection_sampling=False)
-thomas3_cone = ThomasClusterSampler_T(lambda_parent=60, lambda_daughter=100, sigma=0.05, randomization_space=3, use_rejection_sampling=False)
+matern3_cone = MaternClusterPointSampler_T(
+    lambda_parent=60, lambda_daughter=100, cluster_radius=0.1, randomization_space=3, use_rejection_sampling=False
+)
+thomas3_cone = ThomasClusterSampler_T(
+    lambda_parent=60, lambda_daughter=100, sigma=0.05, randomization_space=3, use_rejection_sampling=False
+)
 
 line = Line_T(xmin=-0.5, xmax=0.5, transform=T2, output_space=3)
-plane = Plane_T(xmin=-0.5,xmax=0.5,ymin=-0.5,ymax=0.5, transform=T, output_space=3)
-cube = Cube_T(xmin=-0.5,xmax=0.5,ymin=-0.5,ymax=0.5,zmin=-0.5,zmax=0.5, transform=T2, output_space=3)
-circle = Circle_T(center=(0,0), radius=0.5, theta_min = 1/8*np.pi, theta_max=7/4*np.pi, transform=T, alpha=1.5, output_space=3)
-disk = Disk_T(center=(0,0), radius_min=0.1, radius_max=0.5, theta_min = 1/8*np.pi,theta_max=7/4*np.pi, transform=T2, beta=1.5, output_space=3)
-sphere = Sphere_T(center=(0,0,0), radius_min = 0.1, radius_max=0.5, theta_min = 1/8*np.pi,theta_max=7/4*np.pi, phi_min=1/4*np.pi, phi_max=15/8*np.pi, output_space=3, transform=T2)
-cone = Cone_T(center=(0,0,0))
-cylinder = Cylinder_T(center=(0,0,0))
-torus = Torus_T(center=(0,0,0), radius2_min=0.05)
+plane = Plane_T(xmin=-0.5, xmax=0.5, ymin=-0.5, ymax=0.5, transform=T, output_space=3)
+cube = Cube_T(xmin=-0.5, xmax=0.5, ymin=-0.5, ymax=0.5, zmin=-0.5, zmax=0.5, transform=T2, output_space=3)
+circle = Circle_T(
+    center=(0, 0), radius=0.5, theta_min=1 / 8 * np.pi, theta_max=7 / 4 * np.pi, transform=T, alpha=1.5, output_space=3
+)
+disk = Disk_T(
+    center=(0, 0),
+    radius_min=0.1,
+    radius_max=0.5,
+    theta_min=1 / 8 * np.pi,
+    theta_max=7 / 4 * np.pi,
+    transform=T2,
+    beta=1.5,
+    output_space=3,
+)
+sphere = Sphere_T(
+    center=(0, 0, 0),
+    radius_min=0.1,
+    radius_max=0.5,
+    theta_min=1 / 8 * np.pi,
+    theta_max=7 / 4 * np.pi,
+    phi_min=1 / 4 * np.pi,
+    phi_max=15 / 8 * np.pi,
+    output_space=3,
+    transform=T2,
+)
+cone = Cone_T(center=(0, 0, 0))
+cylinder = Cylinder_T(center=(0, 0, 0))
+torus = Torus_T(center=(0, 0, 0), radius2_min=0.05)
 
 fig = plt.figure()
 
-plane2 = Plane_T(xmin=-0.5,xmax=0.5,ymin=-0.5,ymax=0.5, transform=T, output_space=3)
+plane2 = Plane_T(xmin=-0.5, xmax=0.5, ymin=-0.5, ymax=0.5, transform=T, output_space=3)
 plane_layer = PlaneLayer(plane2, matern2)
 points = plane_layer(1000)
-ax = fig.add_subplot(2,4,1, projection='3d')
-ax.scatter(points[:,0],points[:,1], points[:,2], "o")
+ax = fig.add_subplot(2, 4, 1, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "o")
 ax.set_title("MaternClusterPointProcess on a Plane")
 
-cube2 = Cube_T(xmin=-0.5,xmax=0.5,ymin=-0.5,ymax=0.5, zmin=-0.5, zmax=0.5, transform=T, output_space=3)
+cube2 = Cube_T(xmin=-0.5, xmax=0.5, ymin=-0.5, ymax=0.5, zmin=-0.5, zmax=0.5, transform=T, output_space=3)
 cube_layer = CubeLayer(cube2, matern3)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,4,2, projection='3d')
-ax.scatter(points[:,0],points[:,1], points[:,2], "o")
+ax = fig.add_subplot(2, 4, 2, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "o")
 ax.set_title("MaternClusterPointProcess in a Cube")
 
-disk2 = Disk_T(center=(0,0), radius_min=0.0, radius_max=0.5, theta_min = 0,theta_max=2*np.pi, transform=T2, beta=1, output_space=3)
+disk2 = Disk_T(
+    center=(0, 0),
+    radius_min=0.0,
+    radius_max=0.5,
+    theta_min=0,
+    theta_max=2 * np.pi,
+    transform=T2,
+    beta=1,
+    output_space=3,
+)
 disk_layer = DiskLayer(disk2, matern2_polar)
 points = disk_layer(1000)
-ax = fig.add_subplot(2,4,3, projection='3d')
-ax.scatter(points[:,0],points[:,1], points[:,2], "o")
+ax = fig.add_subplot(2, 4, 3, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "o")
 ax.set_title("MaternClusterPointProcess on a Disk")
 
-sphere2 = Sphere_T(center=(0,0,0), radius_min = 0.0, radius_max=0.5, theta_min = 0, theta_max=np.pi*2, phi_min=0, phi_max=2*np.pi, output_space=3, transform=T2)
+sphere2 = Sphere_T(
+    center=(0, 0, 0),
+    radius_min=0.0,
+    radius_max=0.5,
+    theta_min=0,
+    theta_max=np.pi * 2,
+    phi_min=0,
+    phi_max=2 * np.pi,
+    output_space=3,
+    transform=T2,
+)
 sphere_layer = SphereLayer(sphere2, matern3_polar)
 points = sphere_layer(1000)
-ax = fig.add_subplot(2,4,4, projection='3d')
-ax.scatter(points[:,0],points[:,1], points[:,2], "o")
+ax = fig.add_subplot(2, 4, 4, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "o")
 ax.set_title("MaternClusterPointProcess in a Sphere")
 
-plane2 = Plane_T(xmin=-0.5,xmax=0.5,ymin=-0.5,ymax=0.5, transform=T, output_space=3)
+plane2 = Plane_T(xmin=-0.5, xmax=0.5, ymin=-0.5, ymax=0.5, transform=T, output_space=3)
 plane_layer = PlaneLayer(plane2, hcmatern2)
 points = plane_layer(1000)
-ax = fig.add_subplot(2,4,5, projection='3d')
-ax.scatter(points[:,0],points[:,1], points[:,2], "o")
+ax = fig.add_subplot(2, 4, 5, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "o")
 ax.set_title("HardCoreMaternClusterPointProcess on a Plane")
 
-cube2 = Cube_T(xmin=-0.5,xmax=0.5,ymin=-0.5,ymax=0.5, zmin=-0.5, zmax=0.5, transform=None, output_space=3)
+cube2 = Cube_T(xmin=-0.5, xmax=0.5, ymin=-0.5, ymax=0.5, zmin=-0.5, zmax=0.5, transform=None, output_space=3)
 plane_layer = CubeLayer(cube2, hcmatern3)
 points = plane_layer(1000)
-ax = fig.add_subplot(2,4,6, projection='3d')
-ax.scatter(points[:,0],points[:,1], points[:,2], "o")
+ax = fig.add_subplot(2, 4, 6, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "o")
 ax.set_title("HardCoreMaternClusterPointProcess in a Cube")
 
-disk2 = Disk_T(center=(0,0), radius_min=0.0, radius_max=0.5, theta_min = 0,theta_max=2*np.pi, transform=T2, beta=1, output_space=3)
+disk2 = Disk_T(
+    center=(0, 0),
+    radius_min=0.0,
+    radius_max=0.5,
+    theta_min=0,
+    theta_max=2 * np.pi,
+    transform=T2,
+    beta=1,
+    output_space=3,
+)
 disk_layer = DiskLayer(disk2, hcmatern2_polar)
 points = disk_layer(1000)
-ax = fig.add_subplot(2,4,7, projection='3d')
-ax.scatter(points[:,0],points[:,1], points[:,2], "o")
+ax = fig.add_subplot(2, 4, 7, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "o")
 ax.set_title("HardCoreMaternClusterPointProcess on a Disk")
 
-sphere2 = Sphere_T(center=(0,0,0), radius_min = 0.0, radius_max=0.5, theta_min = 0, theta_max=np.pi*2, phi_min=0, phi_max=2*np.pi, output_space=3, transform=T2)
+sphere2 = Sphere_T(
+    center=(0, 0, 0),
+    radius_min=0.0,
+    radius_max=0.5,
+    theta_min=0,
+    theta_max=np.pi * 2,
+    phi_min=0,
+    phi_max=2 * np.pi,
+    output_space=3,
+    transform=T2,
+)
 sphere_layer = SphereLayer(sphere2, hcmatern3_polar)
 points = sphere_layer(1000)
-ax = fig.add_subplot(2,4,8, projection='3d')
-ax.scatter(points[:,0],points[:,1], points[:,2], "o")
+ax = fig.add_subplot(2, 4, 8, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "o")
 ax.set_title("HardCoreMaternClusterPointProcess in a Sphere")
 
 plt.show()
 
 fig = plt.figure()
 
-plane2 = Plane_T(xmin=-0.5,xmax=0.5,ymin=-0.5,ymax=0.5, transform=T, output_space=3)
+plane2 = Plane_T(xmin=-0.5, xmax=0.5, ymin=-0.5, ymax=0.5, transform=T, output_space=3)
 plane_layer = PlaneLayer(plane2, thomas2)
 points = plane_layer(1000)
-ax = fig.add_subplot(2,4,1, projection='3d')
-ax.scatter(points[:,0],points[:,1], points[:,2], "o")
+ax = fig.add_subplot(2, 4, 1, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "o")
 ax.set_title("ThomasClusterProcess on a Plane")
-cube2 = Cube_T(xmin=-0.5,xmax=0.5,ymin=-0.5,ymax=0.5, zmin=-0.5, zmax=0.5, transform=T, output_space=3)
+cube2 = Cube_T(xmin=-0.5, xmax=0.5, ymin=-0.5, ymax=0.5, zmin=-0.5, zmax=0.5, transform=T, output_space=3)
 cube_layer = CubeLayer(cube2, thomas3)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,4,2, projection='3d')
-ax.scatter(points[:,0],points[:,1], points[:,2], "o")
+ax = fig.add_subplot(2, 4, 2, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "o")
 ax.set_title("ThomasClusterProcess in a Cube")
-disk2 = Disk_T(center=(0,0), radius_min=0.0, radius_max=0.5, theta_min = 0,theta_max=2*np.pi, transform=T2, beta=1, output_space=3)
+disk2 = Disk_T(
+    center=(0, 0),
+    radius_min=0.0,
+    radius_max=0.5,
+    theta_min=0,
+    theta_max=2 * np.pi,
+    transform=T2,
+    beta=1,
+    output_space=3,
+)
 disk_layer = DiskLayer(disk2, thomas2_polar)
 points = disk_layer(1000)
-ax = fig.add_subplot(2,4,3, projection='3d')
-ax.scatter(points[:,0],points[:,1], points[:,2], "o")
+ax = fig.add_subplot(2, 4, 3, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "o")
 ax.set_title("ThomasClusterProcess on a Disk")
-sphere2 = Sphere_T(center=(0,0,0), radius_min = 0.0, radius_max=0.5, theta_min = 0, theta_max=np.pi*2, phi_min=0, phi_max=2*np.pi, output_space=3, transform=T2)
+sphere2 = Sphere_T(
+    center=(0, 0, 0),
+    radius_min=0.0,
+    radius_max=0.5,
+    theta_min=0,
+    theta_max=np.pi * 2,
+    phi_min=0,
+    phi_max=2 * np.pi,
+    output_space=3,
+    transform=T2,
+)
 sphere_layer = SphereLayer(sphere2, thomas3_polar)
 points = sphere_layer(1000)
-ax = fig.add_subplot(2,4,4, projection='3d')
-ax.scatter(points[:,0],points[:,1], points[:,2], "o")
+ax = fig.add_subplot(2, 4, 4, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "o")
 ax.set_title("ThomasClusterProcess in a Sphere")
-plane2 = Plane_T(xmin=-0.5,xmax=0.5,ymin=-0.5,ymax=0.5, transform=T, output_space=3)
+plane2 = Plane_T(xmin=-0.5, xmax=0.5, ymin=-0.5, ymax=0.5, transform=T, output_space=3)
 plane_layer = PlaneLayer(plane2, hcthomas2)
 points = plane_layer(1000)
-ax = fig.add_subplot(2,4,5, projection='3d')
-ax.scatter(points[:,0],points[:,1], points[:,2], "o")
+ax = fig.add_subplot(2, 4, 5, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "o")
 ax.set_title("HardCoreThomasClusterProcess on a Plane")
-cube2 = Cube_T(xmin=-0.5,xmax=0.5,ymin=-0.5,ymax=0.5, zmin=-0.5, zmax=0.5, transform=None, output_space=3)
+cube2 = Cube_T(xmin=-0.5, xmax=0.5, ymin=-0.5, ymax=0.5, zmin=-0.5, zmax=0.5, transform=None, output_space=3)
 plane_layer = CubeLayer(cube2, hcthomas3)
 points = plane_layer(1000)
-ax = fig.add_subplot(2,4,6, projection='3d')
-ax.scatter(points[:,0],points[:,1], points[:,2], "o")
+ax = fig.add_subplot(2, 4, 6, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "o")
 ax.set_title("HardCoreThomasClusterProcess in a Cube")
-disk2 = Disk_T(center=(0,0), radius_min=0.0, radius_max=0.5, theta_min = 0,theta_max=2*np.pi, transform=T2, beta=1, output_space=3)
+disk2 = Disk_T(
+    center=(0, 0),
+    radius_min=0.0,
+    radius_max=0.5,
+    theta_min=0,
+    theta_max=2 * np.pi,
+    transform=T2,
+    beta=1,
+    output_space=3,
+)
 disk_layer = DiskLayer(disk2, hcthomas2)
 points = disk_layer(1000)
-ax = fig.add_subplot(2,4,7, projection='3d')
-ax.scatter(points[:,0],points[:,1], points[:,2], "o")
+ax = fig.add_subplot(2, 4, 7, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "o")
 ax.set_title("HardCoreThomasClusterProcess on a Disk")
-sphere2 = Sphere_T(center=(0,0,0), radius_min = 0.0, radius_max=0.5, theta_min = 0, theta_max=np.pi*2, phi_min=0, phi_max=2*np.pi, output_space=3, transform=T2)
+sphere2 = Sphere_T(
+    center=(0, 0, 0),
+    radius_min=0.0,
+    radius_max=0.5,
+    theta_min=0,
+    theta_max=np.pi * 2,
+    phi_min=0,
+    phi_max=2 * np.pi,
+    output_space=3,
+    transform=T2,
+)
 sphere_layer = SphereLayer(sphere2, hcthomas3)
 points = sphere_layer(1000)
-ax = fig.add_subplot(2,4,8, projection='3d')
-ax.scatter(points[:,0],points[:,1], points[:,2], "o")
+ax = fig.add_subplot(2, 4, 8, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "o")
 ax.set_title("HardCoreThomasClusterProcess in a Sphere")
 
 plt.show()
@@ -182,8 +356,8 @@ plt.show()
 fig = plt.figure()
 cube_layer = LineLayer(line, uni1)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,1, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 1, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -191,8 +365,8 @@ ax.set_title("Uniform on a Line")
 
 cube_layer = LineLayer(line, norm1)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,2, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 2, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -200,8 +374,8 @@ ax.set_title("Multivariate Normal on a Line")
 
 cube_layer = PlaneLayer(plane, uni2)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,3, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 3, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -209,8 +383,8 @@ ax.set_title("Uniform on a Plane")
 
 cube_layer = PlaneLayer(plane, norm2)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,4, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 4, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -218,8 +392,8 @@ ax.set_title("Multivariate Normal on a Plane")
 
 cube_layer = CubeLayer(cube, uni3)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,5, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 5, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -227,8 +401,8 @@ ax.set_title("Uniform on a Cube")
 
 cube_layer = CubeLayer(cube, norm3)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,6, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 6, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -236,8 +410,8 @@ ax.set_title("Multivariate Normal on a Cube")
 
 cube_layer = CircleLayer(circle, uni1)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,7, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 7, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -245,8 +419,8 @@ ax.set_title("Uniform on a Circle")
 
 cube_layer = CircleLayer(circle, norm1c)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,8, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 8, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -254,8 +428,8 @@ ax.set_title("Multivariate Normal on a Circle")
 
 cube_layer = DiskLayer(disk, uni2)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,9, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 9, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -263,8 +437,8 @@ ax.set_title("Uniform on a Disk")
 
 cube_layer = DiskLayer(disk, norm2c)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,10, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 10, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -272,8 +446,8 @@ ax.set_title("Multivariate Normal on a Disk")
 
 cube_layer = SphereLayer(sphere, uni3)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,11, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 11, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -281,8 +455,8 @@ ax.set_title("Uniform on a Sphere")
 
 cube_layer = SphereLayer(sphere, norm3c)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,12, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 12, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -292,8 +466,8 @@ plt.show()
 fig = plt.figure()
 cube_layer = LineLayer(line, int1)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,1, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 1, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -301,8 +475,8 @@ ax.set_title("LinearInterpolation on a Line")
 
 cube_layer = LineLayer(line, poi1)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,2, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 2, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -310,8 +484,8 @@ ax.set_title("PoissonPointProcess on a Line")
 
 cube_layer = PlaneLayer(plane, int2)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,3, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 3, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -319,8 +493,8 @@ ax.set_title("LinearInterpolation on a Plane")
 
 cube_layer = PlaneLayer(plane, poi2)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,4, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 4, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -328,8 +502,8 @@ ax.set_title("PoissonPointProcess on a Plane")
 
 cube_layer = CubeLayer(cube, int3)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,5, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 5, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -337,8 +511,8 @@ ax.set_title("LinearInterpolation on a Cube")
 
 cube_layer = CubeLayer(cube, poi3)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,6, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 6, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -346,8 +520,8 @@ ax.set_title("PoissonPointProcess on a Cube")
 
 cube_layer = CircleLayer(circle, int1)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,7, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 7, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -355,8 +529,8 @@ ax.set_title("LinearInterpolation on a Circle")
 
 cube_layer = CircleLayer(circle, poi1)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,8, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 8, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -364,8 +538,8 @@ ax.set_title("PoissonPointProcess on a Circle")
 
 cube_layer = DiskLayer(disk, int2)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,9, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 9, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -373,8 +547,8 @@ ax.set_title("LinearInterpolation on a Disk")
 
 cube_layer = DiskLayer(disk, poi2)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,10, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 10, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -382,8 +556,8 @@ ax.set_title("PoissonPointProcess on a Disk")
 
 cube_layer = SphereLayer(sphere, int3)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,11, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 11, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -391,8 +565,8 @@ ax.set_title("LinearInterpolation on a Sphere")
 
 cube_layer = SphereLayer(sphere, poi3)
 points = cube_layer(1000)
-ax = fig.add_subplot(2,6,12, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 12, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -402,8 +576,8 @@ plt.show()
 fig = plt.figure()
 cylinder_layer = CylinderLayer(cylinder, uni3)
 points = cylinder_layer(1000)
-ax = fig.add_subplot(2,6,1, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 1, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -411,8 +585,8 @@ ax.set_title("Uniform in a Cylinder")
 
 cylinder_layer = CylinderLayer(cylinder, norm3_cy)
 points = cylinder_layer(1000)
-ax = fig.add_subplot(2,6,2, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 2, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -420,8 +594,8 @@ ax.set_title("Multivariate Normal in a Cylinder")
 
 cylinder_layer = CylinderLayer(cylinder, poi3)
 points = cylinder_layer(1000)
-ax = fig.add_subplot(2,6,3, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 3, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -429,8 +603,8 @@ ax.set_title("PoissonPointProcess in a Cylinder")
 
 cylinder_layer = CylinderLayer(cylinder, int3)
 points = cylinder_layer(1000)
-ax = fig.add_subplot(2,6,4, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 4, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -438,8 +612,8 @@ ax.set_title("LinearInterpolation in a Cylinder")
 
 cylinder_layer = CylinderLayer(cylinder, matern3)
 points = cylinder_layer(1000)
-ax = fig.add_subplot(2,6,5, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 5, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -447,8 +621,8 @@ ax.set_title("MaternClusterPointProcess in a Cylinder")
 
 cylinder_layer = CylinderLayer(cylinder, thomas3)
 points = cylinder_layer(1000)
-ax = fig.add_subplot(2,6,6, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 6, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -456,8 +630,8 @@ ax.set_title("ThomasClusterProcess in a Cylinder")
 
 cone_layer = ConeLayer(cone, uni3)
 points = cone_layer(1000)
-ax = fig.add_subplot(2,6,7, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 7, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -465,8 +639,8 @@ ax.set_title("Uniform on a Cone")
 
 cone_layer = ConeLayer(cone, norm3_cy)
 points = cone_layer(1000)
-ax = fig.add_subplot(2,6,8, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 8, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -474,8 +648,8 @@ ax.set_title("Multivariate Normal in a Cone")
 
 cone_layer = ConeLayer(cone, poi3)
 points = cone_layer(1000)
-ax = fig.add_subplot(2,6,9, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 9, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -483,8 +657,8 @@ ax.set_title("PoissonPointProcess in a Cone")
 
 cone_layer = ConeLayer(cone, int3)
 points = cone_layer(1000)
-ax = fig.add_subplot(2,6,10, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 10, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -492,8 +666,8 @@ ax.set_title("LinearInterpolation in a Cone")
 
 cone_layer = ConeLayer(cone, matern3_cone)
 points = cone_layer(1000)
-ax = fig.add_subplot(2,6,11, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 11, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -501,8 +675,8 @@ ax.set_title("MaternClusterPointProcess in a Cone")
 
 cone_layer = ConeLayer(cone, thomas3_cone)
 points = cone_layer(1000)
-ax = fig.add_subplot(2,6,12, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(2, 6, 12, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -512,8 +686,8 @@ plt.show()
 fig = plt.figure()
 torus_layer = TorusLayer(torus, uni3)
 points = torus_layer(1000)
-ax = fig.add_subplot(1,6,1, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(1, 6, 1, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -521,8 +695,8 @@ ax.set_title("Uniform in a Torus")
 
 torus_layer = TorusLayer(torus, norm3c)
 points = torus_layer(1000)
-ax = fig.add_subplot(1,6,2, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(1, 6, 2, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -530,8 +704,8 @@ ax.set_title("Multivariate Normal in a Torus")
 
 torus_layer = TorusLayer(torus, poi3)
 points = torus_layer(1000)
-ax = fig.add_subplot(1,6,3, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(1, 6, 3, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -539,8 +713,8 @@ ax.set_title("PoissonPointProcess in a Torus")
 
 torus_layer = TorusLayer(torus, int3)
 points = torus_layer(1000)
-ax = fig.add_subplot(1,6,4, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(1, 6, 4, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -548,8 +722,8 @@ ax.set_title("LinearInterpolation in a Torus")
 
 torus_layer = TorusLayer(torus, matern3)
 points = torus_layer(1000)
-ax = fig.add_subplot(1,6,5, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(1, 6, 5, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
@@ -557,15 +731,14 @@ ax.set_title("MaternClusterPointProcess in a Torus")
 
 torus_layer = TorusLayer(torus, thomas3)
 points = torus_layer(1000)
-ax = fig.add_subplot(1,6,6, projection='3d')
-ax.scatter(points[:,0],points[:,1],points[:,2],'+')
+ax = fig.add_subplot(1, 6, 6, projection="3d")
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], "+")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
 ax.set_title("ThomasClusterProcess in a Torus")
 
 plt.show()
-
 
 
 """

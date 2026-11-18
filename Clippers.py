@@ -46,6 +46,9 @@ class HeightClipper(BaseClipper):
             u = int(u)
             v = int(v)
             height.append(self.image[v, u])
+        if not height:
+            # The sampler can draw zero points, e.g. a point process with no parents.
+            return np.empty((0, 1), dtype=self.image.dtype)
         return np.stack(height)[:, np.newaxis]
 
 
@@ -88,6 +91,8 @@ class NormalMapClipper(BaseClipper):
             q = quaternion.as_float_array(quaternion.from_euler_angles([roll, pitch, yaw]))
             quat.append(q)
 
+        if not quat:
+            return np.empty((0, 4))
         return np.stack(quat)
 
 
